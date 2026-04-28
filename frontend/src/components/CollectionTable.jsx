@@ -23,6 +23,9 @@ function CollectionTable({ cards }) {
                   ? <img src={card.imageNormal} alt={card.name} />
                   : <span className="no-image">—</span>
                 }
+                {card.imageNormalBack &&
+                  <img src={card.imageNormalBack} alt={`${card.name} (back)`} />
+                }
               </td>
               <td className="name-cell">{card.name}</td>
               <td>{card.setCode.toUpperCase()}<br /><span className="set-name">{card.setName}</span></td>

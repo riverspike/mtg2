@@ -33,14 +33,17 @@ public class CollectionRepository {
                 ca.toughness,
                 ca.artist,
                 ca.flavor_text,
-                s.code                     AS set_code,
-                s.name                     AS set_name,
-                ci.uri                     AS image_normal
+                s.code                        AS set_code,
+                s.name                        AS set_name,
+                ci_front.uri                  AS image_normal,
+                ci_back.uri                   AS image_normal_back
             FROM collection c
             JOIN cards ca ON ca.id = c.card_id
             JOIN sets  s  ON s.id  = ca.set_id
-            LEFT JOIN card_images ci
-                ON ci.card_id = c.card_id AND ci.image_type = 'normal'
+            LEFT JOIN card_images ci_front
+                ON ci_front.card_id = c.card_id AND ci_front.face = 0 AND ci_front.image_type = 'normal'
+            LEFT JOIN card_images ci_back
+                ON ci_back.card_id = c.card_id AND ci_back.face = 1 AND ci_back.image_type = 'normal'
             ORDER BY ca.name, c.is_foil
             """;
 
@@ -64,7 +67,8 @@ public class CollectionRepository {
                     rs.getString("flavor_text"),
                     rs.getString("set_code"),
                     rs.getString("set_name"),
-                    rs.getString("image_normal")
+                    rs.getString("image_normal"),
+                    rs.getString("image_normal_back")
             );
 
     public List<CollectionCardDto> findAll() {

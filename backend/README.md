@@ -149,9 +149,15 @@ Returns all cards in the collection.
     "flavorText": "The weight of this magic weapon falls heavy on the wicked.",
     "setCode": "afr",
     "setName": "Adventures in the Forgotten Realms",
-    "imageNormal": "https://c1.scryfall.com/file/scryfall-cards/normal/..."
+    "imageNormal": "https://c1.scryfall.com/file/scryfall-cards/normal/...",
+    "imageNormalBack": null
   }
 ]
+```
+
+For double-sided cards (transform / modal_dfc), `imageNormal` is the front face and `imageNormalBack` is the back face. Both are `normal`-resolution Scryfall image URIs. `imageNormalBack` is `null` for single-faced cards.
+
+```json
 ```
 
 ---

@@ -78,7 +78,8 @@ npm run preview
 
 - **Load All** button fetches all cards from the backend API
 - Loading state disables the button and shows "Loading…" while the request is in flight
-- Table displays: card image, name, set, mana cost, type line, rarity, power/toughness, foil status, quantity
+- Table displays: card image(s), name, set, mana cost, type line, rarity, power/toughness, foil status, quantity
+- Double-sided cards show both the front and back face images in the Image column
 - Rows are colour-coded by rarity (mythic = orange, rare = gold, uncommon = silver, common = grey)
 
 ---
