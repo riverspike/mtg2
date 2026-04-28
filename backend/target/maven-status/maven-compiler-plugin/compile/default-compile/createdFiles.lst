@@ -1,0 +1,4 @@
+com\mtgcards\controller\CollectionController.class
+com\mtgcards\repository\CollectionRepository.class
+com\mtgcards\dto\CollectionCardDto.class
+com\mtgcards\MtgCardsApplication.class
