@@ -18,11 +18,11 @@ public class CollectionRepository {
 
     private static final String FIND_ALL_SQL = """
             SELECT
-                c.id,
+                c.collection_id,
                 BIN_TO_UUID(c.card_id, 1)  AS card_id,
                 c.is_foil,
                 c.quantity,
-                c.time_updated,
+                c.updated_at,
                 ca.name,
                 ca.mana_cost,
                 ca.cmc,
@@ -38,8 +38,8 @@ public class CollectionRepository {
                 ci_front.uri                  AS image_normal,
                 ci_back.uri                   AS image_normal_back
             FROM collection c
-            JOIN cards ca ON ca.id = c.card_id
-            JOIN sets  s  ON s.id  = ca.set_id
+            JOIN cards ca ON ca.card_id = c.card_id
+            JOIN sets  s  ON s.set_id = ca.set_id
             LEFT JOIN card_images ci_front
                 ON ci_front.card_id = c.card_id AND ci_front.face = 0 AND ci_front.image_type = 'normal'
             LEFT JOIN card_images ci_back
@@ -49,12 +49,12 @@ public class CollectionRepository {
 
     private static final RowMapper<CollectionCardDto> ROW_MAPPER = (rs, rowNum) ->
             new CollectionCardDto(
-                    rs.getInt("id"),
+                    rs.getInt("collection_id"),
                     rs.getString("card_id"),
                     rs.getBoolean("is_foil"),
                     rs.getInt("quantity"),
-                    rs.getTimestamp("time_updated") != null
-                            ? rs.getTimestamp("time_updated").toLocalDateTime() : null,
+                    rs.getTimestamp("updated_at") != null
+                            ? rs.getTimestamp("updated_at").toLocalDateTime() : null,
                     rs.getString("name"),
                     rs.getString("mana_cost"),
                     rs.getDouble("cmc"),
