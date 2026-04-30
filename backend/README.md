@@ -150,14 +150,45 @@ Returns all cards in the collection.
     "setCode": "afr",
     "setName": "Adventures in the Forgotten Realms",
     "imageNormal": "https://c1.scryfall.com/file/scryfall-cards/normal/...",
-    "imageNormalBack": null
+    "imageNormalBack": null,
+    "colors": "W",
+    "collectorNumber": "3",
+    "locations": "Binder,Box",
+    "usd": 0.12,
+    "usdFoil": null,
+    "priceUpdatedAt": "2024-01-15",
+    "faces": null
   }
 ]
 ```
 
-For double-sided cards (transform / modal_dfc), `imageNormal` is the front face and `imageNormalBack` is the back face. Both are `normal`-resolution Scryfall image URIs. `imageNormalBack` is `null` for single-faced cards.
+For double-sided cards (transform / modal_dfc):
+- `imageNormal` — front face image; `imageNormalBack` — back face image (`null` for single-faced cards)
+- `faces` — array of per-face objects sorted by face index (0 = front, 1 = back), each containing `face`, `name`, `manaCost`, `typeLine`, `oracleText`, `flavorText`, `power`, `toughness`; `null` for single-faced cards
 
 ```json
+"faces": [
+  {
+    "face": 0,
+    "name": "Afflicted Deserter",
+    "manaCost": "{3}{R}",
+    "typeLine": "Creature — Human Werewolf",
+    "oracleText": "At the beginning of each upkeep...",
+    "flavorText": "The rising of the first full moon...",
+    "power": "3",
+    "toughness": "2"
+  },
+  {
+    "face": 1,
+    "name": "Werewolf Ransacker",
+    "manaCost": null,
+    "typeLine": "Creature — Werewolf",
+    "oracleText": "Whenever this creature transforms...",
+    "flavorText": null,
+    "power": "5",
+    "toughness": "4"
+  }
+]
 ```
 
 ---
@@ -175,7 +206,8 @@ backend/
     │   ├── controller/
     │   │   └── CollectionController.java            REST controllers
     │   ├── dto/
-    │   │   └── CollectionCardDto.java               API response shapes (Java records)
+    │   │   ├── CollectionCardDto.java               API response shape (Java record)
+    │   │   └── CardFaceDto.java                     Per-face data for double-sided cards
     │   └── repository/
     │       └── CollectionRepository.java            JdbcTemplate data access
     └── resources/

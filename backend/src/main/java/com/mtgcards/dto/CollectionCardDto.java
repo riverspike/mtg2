@@ -2,6 +2,7 @@ package com.mtgcards.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record CollectionCardDto(
         int id,
@@ -22,5 +23,12 @@ public record CollectionCardDto(
         String setCode,
         String setName,
         String imageNormal,
-        String imageNormalBack   // null for single-faced cards
+        String imageNormalBack,
+        String colors,
+        String collectorNumber,
+        String locations,
+        Double usd,
+        Double usdFoil,
+        String priceUpdatedAt,
+        List<CardFaceDto> faces   // null for single-sided cards
 ) {}
