@@ -1,3 +1,5 @@
+import ManaText from './ManaText'
+
 const MANA_COLORS = ['W', 'U', 'B', 'R', 'G']
 
 export default function CollectionFilters({ filters, onFiltersChange, allSets, allLocations }) {
@@ -28,16 +30,15 @@ export default function CollectionFilters({ filters, onFiltersChange, allSets, a
 
       <div className="filter-group">
         <label className="filter-label">Color</label>
-        {/* TODO: replace color letters with mana SVG icons from src/images/mana/ — see MTG_Collection_App.md General > Colors */}
         <div className="color-checkboxes">
           {MANA_COLORS.map(c => (
-            <label key={c} className={`color-check color-${c}`}>
+            <label key={c} className="color-check">
               <input
                 type="checkbox"
                 checked={filters.colors.includes(c)}
                 onChange={() => toggleColor(c)}
               />
-              {c}
+              <ManaText text={`{${c}}`} size={20} />
             </label>
           ))}
         </div>

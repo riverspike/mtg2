@@ -190,18 +190,27 @@ h1 {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 700;
   user-select: none;
 }
 
 .color-check input { cursor: pointer; }
 
-.color-W { color: #f9faf4; }
-.color-U { color: #0e68ab; }
-.color-B { color: #a69f9d; }
-.color-R { color: #d3202a; }
-.color-G { color: #00733e; }
+.mana-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  vertical-align: middle;
+}
+
+.mana-icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.mana-unknown {
+  font-size: 0.8em;
+  color: #888;
+}
 
 /* ── Table controls ──────────────────────────────────────── */
 

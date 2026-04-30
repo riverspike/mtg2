@@ -206,8 +206,7 @@ backend/
     │   ├── controller/
     │   │   └── CollectionController.java            REST controllers
     │   ├── dto/
-    │   │   ├── CollectionCardDto.java               API response shape (Java record)
-    │   │   └── CardFaceDto.java                     Per-face data for double-sided cards
+    │   │   └── CollectionCardDto.java               API response shapes (Java records)
     │   └── repository/
     │       └── CollectionRepository.java            JdbcTemplate data access
     └── resources/

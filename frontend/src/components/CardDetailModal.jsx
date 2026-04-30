@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ManaText from './ManaText'
 
 export default function CardDetailModal({ card, onClose }) {
   const isDfc    = Array.isArray(card.faces) && card.faces.length === 2
@@ -67,7 +68,7 @@ export default function CardDetailModal({ card, onClose }) {
 
           {detail.manaCost && <>
             <dt>Mana Cost</dt>
-            <dd>{detail.manaCost}</dd>
+            <dd><ManaText text={detail.manaCost} size={18} /></dd>
           </>}
 
           <dt>Type</dt>

@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import ManaText from './ManaText'
 
 const PAGE_SIZES = [50, 100, 150, 200, 500]
 
 const COLUMNS = [
   { key: 'name',            label: 'Name',          sort: (a, b) => a.name.localeCompare(b.name) },
   { key: 'quantity',        label: 'Qty',            sort: (a, b) => a.quantity - b.quantity },
-  { key: 'colors',          label: 'Color',          sort: (a, b) => (a.colors ?? '').localeCompare(b.colors ?? '') },
+  { key: 'manaCost',        label: 'Mana',           sort: (a, b) => a.cmc - b.cmc },
   { key: 'typeLine',        label: 'Type',           sort: (a, b) => (a.typeLine ?? '').localeCompare(b.typeLine ?? '') },
   { key: 'setName',         label: 'Card Set',       sort: (a, b) => (a.setName ?? '').localeCompare(b.setName ?? '') },
   { key: 'collectorNumber', label: 'No.',            sort: (a, b) => (a.collectorNumber ?? '').localeCompare(b.collectorNumber ?? '') },
@@ -92,8 +93,11 @@ export default function CollectionTable({ cards, onCardClick }) {
                     </button>
                   </td>
                   <td className="qty">{card.quantity}</td>
-                  {/* TODO: replace text colors with mana SVG icons from src/images/mana/ — see MTG_Collection_App.md General > Colors */}
-                  <td className="color-cell">{card.colors ?? '—'}</td>
+                  <td className="color-cell">
+                    {card.manaCost
+                      ? <ManaText text={card.manaCost} size={14} />
+                      : '—'}
+                  </td>
                   <td>{card.typeLine ?? '—'}</td>
                   <td>{card.setName}</td>
                   <td className="collector-num">{card.collectorNumber ?? '—'}</td>

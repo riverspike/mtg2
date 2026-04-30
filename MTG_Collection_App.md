@@ -179,7 +179,74 @@ When a color is indicated, the image for the color should replace the text versi
 * The images for mana are located in mtg2/frontend/src/images/mana/  
 * Text for colors are indicated with curly brackets {}  
   * Example {R} \= Red Mana \= red-mana.svg  
-* Mapping \<TBD\>
+* Mapping
+
+| Symbol | File |
+|--------|------|
+| `{W}` | `white-mana.svg` |
+| `{U}` | `blue-mana.svg` |
+| `{B}` | `black-mana.svg` |
+| `{R}` | `red-mana.svg` |
+| `{G}` | `green-mana.svg` |
+| `{C}` | `colorless-mana.svg` |
+| `{T}` | `tap.svg` |
+| `{Q}` | `untap.svg` |
+| `{E}` | `energy.svg` |
+| `{S}` | `snow.svg` |
+| `{P}` | `mana-or-life.svg` |
+| `{X}` | `x-generic-mana.svg` |
+| `{Y}` | `y-generic-mana.svg` |
+| `{Z}` | `z-generic-mana.svg` |
+| `{PW}` | `planeswalker.svg` |
+| `{CHAOS}` | `chaos.svg` |
+| `{A}` | `acorn.svg` |
+| `{HALF}` | `half-mana.svg` |
+| `{INFINITY}` | `infinity-mana.svg` |
+| `{HR}` | `half-red.svg` |
+| `{HW}` | `half-white.svg` |
+| `{W/U}` / `{WU}` | `white-or-blue.svg` |
+| `{W/B}` / `{WB}` | `white-or-black.svg` |
+| `{U/B}` / `{UB}` | `blue-or-black.svg` |
+| `{U/R}` / `{UR}` | `blue-or-red.svg` |
+| `{B/R}` / `{BR}` | `black-or-red.svg` |
+| `{B/G}` / `{BG}` | `black-or-green.svg` |
+| `{R/G}` / `{RG}` | `red-or-green.svg` |
+| `{R/W}` / `{RW}` | `red-or-white.svg` |
+| `{G/W}` / `{GW}` | `green-or-white.svg` |
+| `{G/U}` / `{GU}` | `green-or-blue.svg` |
+| `{W/P}` / `{WP}` | `white-or-life.svg` |
+| `{U/P}` / `{UP}` | `blue-or-life.svg` |
+| `{B/P}` / `{BP}` | `black-or-life.svg` |
+| `{R/P}` / `{RP}` | `red-or-life.svg` |
+| `{G/P}` / `{GP}` | `green-or-life.svg` |
+| `{0}` | `zero-mana.svg` |
+| `{1}` | `one-mana.svg` |
+| `{2}` | `two-mana.svg` |
+| `{3}` | `three-mana.svg` |
+| `{4}` | `four-mana.svg` |
+| `{5}` | `five-mana.svg` |
+| `{6}` | `six-mana.svg` |
+| `{7}` | `seven-mana.svg` |
+| `{8}` | `eight-mana.svg` |
+| `{9}` | `nine-mana.svg` |
+| `{10}` | `ten-mana.svg` |
+| `{11}` | `eleven-mana.svg` |
+| `{12}` | `twelve-mana.svg` |
+| `{13}` | `thirteen-mana.svg` |
+| `{14}` | `fourteen-mana.svg` |
+| `{15}` | `fifteen-mana.svg` |
+| `{16}` | `sixteen-mana.svg` |
+| `{17}` | `seventeen-mana.svg` |
+| `{18}` | `eighteen-mana.svg` |
+| `{19}` | `nineteen-mana.svg` |
+| `{20}` | `twenty-mana.svg` |
+| `{100}` | `one-hundred-mana.svg` |
+| `{1000000}` | `one-million-mana.svg` |
+| `{2/W}` | `two-generic-or-white.svg` |
+| `{2/U}` | `two-generic-or-blue.svg` |
+| `{2/B}` | `two-generic-or-black.svg` |
+| `{2/R}` | `two-generic-or-red.svg` |
+| `{2/G}` | `two-generic-or-green.svg` |
 
 ### Images
 
@@ -287,6 +354,7 @@ When a color is indicated, the image for the color should replace the text versi
 ### Update Values
 
 —--------------------------
+Functionalty notes (not specs)
 
 **Card Finder (Scryfall Search)**
 
@@ -313,6 +381,9 @@ When a color is indicated, the image for the color should replace the text versi
 
 * View regular and foil prices per card  
 * View total value (quantity × price) for filtered results
+
+------------------------------------
+Color notes (not specs)
 
 Filtering out the ones containing digits ({2W}, {2U}, etc.), here's the full list:
 
