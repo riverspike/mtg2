@@ -212,6 +212,40 @@ h1 {
   color: #888;
 }
 
+/* ── Search actions ──────────────────────────────────────── */
+
+.search-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.search-btn {
+  padding: 8px 24px;
+  background: #0f3460;
+  border: 1px solid #c8a951;
+  border-radius: 6px;
+  color: #f0c040;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.search-btn:hover:not(:disabled) { background: #1a3a6e; }
+
+.search-btn:disabled {
+  color: #4a4a6a;
+  border-color: #2a2a4a;
+  cursor: not-allowed;
+}
+
+.search-result-count {
+  color: #888;
+  font-size: 0.85rem;
+}
+
 /* ── Table controls ──────────────────────────────────────── */
 
 .table-section { }

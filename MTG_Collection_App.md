@@ -327,7 +327,42 @@ When a color is indicated, the image for the color should replace the text versi
     * Toughness (if not null)  
       * DB cards.toughness
 
-### Browse MTG database
+### Search MTG Database
+
+Same layout as **Browse My Collection** with the following differences:
+
+* No stats bar (totals and values are not shown)
+* Table starts empty — results are populated by a Scryfall query (not yet implemented)
+* Filters available:
+  * Name
+    * Input box
+  * Mana color(s)
+    * Checkboxes — {W}, {G}, {U}, {B}, {R} with mana icons
+  * Card Set
+    * Multi-select, populated from collection data (same list as Browse My Collection)
+  * No Storage Location filter
+  * Search button that sends request to Scryfall (see note below) 
+* Table columns are identical to Browse My Collection:
+  * Name — click to open card detail pop-up
+  * Qty
+  * Mana — DB cards.mana\_cost, displayed as mana icons, sortable by CMC
+  * Type — DB cards.type\_line
+  * Card Set — DB sets.name
+  * No. — DB cards.collector\_number
+  * Foil — DB collection.is\_foil
+  * Location — DB locations.name
+  * Value — DB card\_prices.usd / usd\_foil
+  * Price Updated — DB card\_prices.updated\_at
+* Card detail pop-up works the same as Browse My Collection
+  * At the bottom of the popup, there should be:
+    * "Location" field (required to add a card)
+      * Dropdown with all storage locations
+    * "Quantity" field (required to add a card)
+    * "Foil" checkbox (checked = foil, unchecked = not foil)
+    * "Add" button to add card to the collection
+* TODO: wire up filters to Scryfall API to populate the table with search results
+
+Refer to https://scryfall.com/docs/api for how to search.  THis is the site we'll use.  Pay attention to any rate limits.  If there is a need to add a delay between requests, be sure to add a comment in the code pointing to the reference in the scryfall documentation.
 
 ### Edit collections
 
@@ -383,33 +418,3 @@ Functionalty notes (not specs)
 * View total value (quantity × price) for filtered results
 
 ------------------------------------
-Color notes (not specs)
-
-Filtering out the ones containing digits ({2W}, {2U}, etc.), here's the full list:
-
-**Basic Colors**
-
-{W} {U} {B} {R} {G} {C}
-
-**Special**
-
-{T} {Q} {E} {S} {P} {X} {Y} {Z} {PW} {CHAOS} {A} {HALF} {INFINITY} {HR} {HW}
-
-**Hybrid (slash format)**
-
-{W/U} {W/B} {U/B} {U/R} {B/R} {B/G} {R/G} {R/W} {G/W} {G/U}
-
-**Hybrid (no slash — alternate format)**
-
-{WU} {WB} {UB} {UR} {BR} {BG} {RG} {RW} {GW} {GU}
-
-**Phyrexian (slash format)**
-
-{W/P} {U/P} {B/P} {R/P} {G/P}
-
-**Phyrexian (no slash — alternate format)**
-
-{WP} {UP} {BP} {RP} {GP}
-
-The slash and no-slash variants appear to be two encodings of the same symbols — the slash format ({W/U}) is the standard Scryfall notation, and the no-slash versions ({WU}) are likely a legacy or alternate mapping in the old app.
-

@@ -1,8 +1,2 @@
-import { configureStore } from '@reduxjs/toolkit'
-import collectionReducer from './collectionSlice.js'
-
-export const store = configureStore({
-  reducer: {
-    collection: collectionReducer,
-  },
-})
+// Converted to TypeScript — see index.ts
+export { store } from './index.ts'
