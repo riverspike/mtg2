@@ -1,14 +1,12 @@
 # MTG Cards Frontend
 
-React 19 single-page application for browsing the MTG card collection. Uses Redux Toolkit for state management and Vite as the build tool.
+React 19 single-page application for the MTG card collection. Uses Redux Toolkit for state management, Vite 6 as the build tool, and TypeScript throughout.
 
 ---
 
 ## Prerequisites
 
 ### 1. Node.js 22+
-The project requires Node.js 22 or higher (Node 24 LTS used in this project).
-
 - Install via winget: `winget install OpenJS.NodeJS.LTS`
 - Or download: https://nodejs.org/en/download/
 - Verify: `node --version`
@@ -18,9 +16,8 @@ Comes bundled with Node.js. Verify: `npm --version`
 
 ### 3. Backend running
 The frontend proxies all `/api/*` requests to the Spring Boot backend on `localhost:8080`.
-The backend must be running before using the app.
 
-Start the full stack (database + backend) with one command:
+Start the full stack (database + backend):
 ```bash
 cd mtg2
 docker compose up -d
@@ -54,13 +51,16 @@ All `/api/*` requests are automatically proxied to `http://localhost:8080` — n
 ## Build (Production)
 
 ```bash
-npm run build
+npm run build       # outputs to dist/
+npm run preview     # serve the production build locally
 ```
 
-Output goes to `dist/`. Serve with:
+---
+
+## Type Checking
 
 ```bash
-npm run preview
+npx tsc --noEmit
 ```
 
 ---
@@ -70,17 +70,27 @@ npm run preview
 1. Start the full stack: `cd mtg2 && docker compose up -d`
 2. Start the frontend: `cd mtg2/frontend && npm run dev`
 3. Open http://localhost:5173
-4. Click **Load All** to fetch and display the full card collection
+4. The collection loads automatically on the **Browse My Collection** tab
 
 ---
 
 ## Features
 
-- **Load All** button fetches all cards from the backend API
-- Loading state disables the button and shows "Loading…" while the request is in flight
-- Table displays: card image(s), name, set, mana cost, type line, rarity, power/toughness, foil status, quantity
-- Double-sided cards show both the front and back face images in the Image column
-- Rows are colour-coded by rarity (mythic = orange, rare = gold, uncommon = silver, common = grey)
+### Browse My Collection
+- Stats bar: total card count, total value, filtered count, filtered value
+- Filters: name (text), color (mana icon checkboxes), card set (multi-select), storage location (multi-select)
+- Sortable, paginated table (50 / 100 / 150 / 200 / 500 rows per page)
+- Mana cost column renders SVG mana icons from `src/images/mana/`
+- Rows colour-coded by rarity (mythic, rare, uncommon, common)
+- Click a card name to open a detail popup with card image, oracle text, and flavor text
+- Double-sided cards show both face images; clicking a face enlarges it and shows that face's details
+
+### Search MTG Database
+- Filters: name, color, card set
+- **Search Scryfall** button sends a query to the Scryfall API and populates the table
+- Button is disabled until at least one filter is set
+- Results show the same table columns and support the same card detail popup
+- Respects Scryfall rate limit (100 ms between paginated requests)
 
 ---
 
@@ -88,37 +98,62 @@ npm run preview
 
 ```
 frontend/
-├── package.json               Dependencies and scripts
-├── vite.config.js             Vite config + /api proxy to :8080
-├── index.html                 HTML entry point
+├── package.json
+├── tsconfig.json              TypeScript config
+├── tsconfig.node.json         TypeScript config for vite.config.ts
+├── vite.config.ts             Vite config + /api proxy to :8080
+├── index.html                 HTML entry point → src/main.tsx
 └── src/
-    ├── main.jsx               App entry — mounts Redux Provider
-    ├── App.jsx                Root component — Load All button + table
-    ├── index.css              Global styles
+    ├── vite-env.d.ts          Vite client type reference
+    ├── main.tsx               App entry — mounts Redux Provider
+    ├── App.tsx                Root — tab nav + view routing
+    ├── index.css              Global styles (dark MTG theme)
+    ├── types/
+    │   └── card.ts            CollectionCard, CardFace, CardFiltersState interfaces
     ├── store/
-    │   ├── index.js           Redux store (configureStore)
-    │   └── collectionSlice.js fetchCollection thunk + collection state
-    └── components/
-        └── CollectionTable.jsx  Card data table
+    │   ├── index.ts           Redux store — exports RootState, AppDispatch
+    │   ├── collectionSlice.ts fetchCollection thunk + collection state
+    │   └── hooks.ts           useAppDispatch, useAppSelector typed hooks
+    ├── utils/
+    │   ├── manaSymbols.ts     Symbol → SVG URL mapping (all mana symbols)
+    │   └── scryfallApi.ts     Scryfall search — query builder, API call, response mapper
+    ├── components/
+    │   ├── CardFilters.tsx    Shared filter bar (name, color, optional sets/locations)
+    │   ├── CollectionTable.tsx Sortable paginated card table
+    │   ├── CardDetailModal.tsx Card detail popup (single-sided + double-sided)
+    │   └── ManaText.tsx       Renders {TOKEN} mana cost strings as icon images
+    ├── views/
+    │   ├── BrowseCollection.tsx  Browse My Collection tab
+    │   └── SearchMtgDatabase.tsx Search MTG Database tab
+    └── images/
+        ├── card-back.jpg
+        └── mana/              SVG mana symbol icons
 ```
 
 ---
 
 ## Tech Stack
 
-| Layer         | Technology       | Version |
-|---------------|------------------|---------|
-| Language      | JavaScript (JSX) | ES2022+ |
-| UI Framework  | React            | 19      |
-| State         | Redux Toolkit    | 2.3     |
-| React-Redux   | react-redux      | 9.1     |
-| Build Tool    | Vite             | 6       |
-| Node Runtime  | Node.js          | 24 LTS  |
+| Layer        | Technology       | Version |
+|--------------|------------------|---------|
+| Language     | TypeScript       | 5.x     |
+| UI Framework | React            | 19      |
+| State        | Redux Toolkit    | 2.3     |
+| React-Redux  | react-redux      | 9.1     |
+| Build Tool   | Vite             | 6       |
+| Node Runtime | Node.js          | 24 LTS  |
 
 ---
 
-## API Dependency
+## API Dependencies
 
-| Endpoint             | Method | Description                     |
-|----------------------|--------|---------------------------------|
-| `/api/collection`    | GET    | Returns all cards in collection |
+| Endpoint          | Method | Description                        |
+|-------------------|--------|------------------------------------|
+| `/api/collection` | GET    | Returns all cards in the collection |
+
+### External APIs
+
+| Service  | Endpoint                          | Description                      |
+|----------|-----------------------------------|----------------------------------|
+| Scryfall | `GET /cards/search?q=...`         | Card search (Search tab)         |
+| Scryfall | Rate limit: 10 req/s              | See https://scryfall.com/docs/api |
