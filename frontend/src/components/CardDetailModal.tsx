@@ -1,15 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ManaText from './ManaText'
-import type { CollectionCard } from '../types/card'
+import { addCardToCollection } from '../utils/collectionApi'
+import type { CollectionCard, LocationOption } from '../types/card'
 
 interface Props {
   card: CollectionCard
   onClose: () => void
+  locations?: LocationOption[]
+  onAdded?: () => void
 }
 
-export default function CardDetailModal({ card, onClose }: Props) {
+export default function CardDetailModal({ card, onClose, locations, onAdded }: Props) {
   const isDfc    = Array.isArray(card.faces) && card.faces.length === 2
   const [activeFace, setActiveFace] = useState(0)
+
+  const [locationId, setLocationId] = useState('')
+  const [quantity,   setQuantity]   = useState(1)
+  const [isFoil,     setIsFoil]     = useState(false)
+  const [adding,     setAdding]     = useState(false)
+  const [addError,   setAddError]   = useState<string | null>(null)
+  const [addSuccess, setAddSuccess] = useState(false)
+
+  useEffect(() => {
+    if (!addSuccess) return
+    const timer = setTimeout(() => setAddSuccess(false), 2500)
+    return () => clearTimeout(timer)
+  }, [addSuccess])
 
   const face = isDfc ? card.faces![activeFace] : null
 
@@ -20,6 +36,21 @@ export default function CardDetailModal({ card, onClose }: Props) {
     flavorText: isDfc ? face!.flavorText : card.flavorText,
     power:      isDfc ? face!.power      : card.power,
     toughness:  isDfc ? face!.toughness  : card.toughness,
+  }
+
+  const handleAdd = async () => {
+    if (!locationId) return
+    setAdding(true)
+    setAddError(null)
+    try {
+      await addCardToCollection(card, Number(locationId), quantity, isFoil)
+      setAddSuccess(true)
+      onAdded?.()
+    } catch (e) {
+      setAddError(e instanceof Error ? e.message : 'Failed to add card')
+    } finally {
+      setAdding(false)
+    }
   }
 
   return (
@@ -93,6 +124,59 @@ export default function CardDetailModal({ card, onClose }: Props) {
             <dd>{detail.power} / {detail.toughness}</dd>
           </>}
         </dl>
+
+        {locations && locations.length > 0 && (
+          <div className="add-to-collection">
+            <div className="add-divider" />
+            <h3 className="add-title">Add to Collection</h3>
+            <div className="add-form">
+              <div className="add-field">
+                <label className="add-label">Location</label>
+                <select
+                  className="add-select"
+                  value={locationId}
+                  onChange={e => { setLocationId(e.target.value); setAddError(null) }}
+                  disabled={addSuccess}
+                >
+                  <option value="">Select location…</option>
+                  {locations.map(l => (
+                    <option key={l.locationId} value={l.locationId}>{l.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="add-field">
+                <label className="add-label">Quantity</label>
+                <input
+                  type="number"
+                  className="add-qty"
+                  min={1}
+                  max={99}
+                  value={quantity}
+                  onChange={e => setQuantity(Math.max(1, Number(e.target.value)))}
+                  disabled={addSuccess}
+                />
+              </div>
+              <label className="add-foil-check">
+                <input
+                  type="checkbox"
+                  checked={isFoil}
+                  onChange={e => setIsFoil(e.target.checked)}
+                  disabled={addSuccess}
+                />
+                Foil
+              </label>
+              <button
+                className="add-btn"
+                onClick={handleAdd}
+                disabled={!locationId || adding || addSuccess}
+              >
+                {adding ? 'Adding…' : 'Add to Collection'}
+              </button>
+            </div>
+            {addError   && <p className="error add-feedback">{addError}</p>}
+            {addSuccess && <p className="add-success">✓ Added to collection</p>}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -125,6 +125,97 @@ The Docker Compose file sets `DB_HOST=mysql` automatically so the backend finds 
 
 ## API Endpoints
 
+### `GET /api/locations`
+Returns all storage locations and decks for the location dropdown.
+
+**Response** — array of location objects:
+```json
+[
+  { "locationId": 1, "locationKey": "storage_forgotten_realms", "name": "Forgotten Realms", "type": "storage" },
+  { "locationId": 2, "locationKey": "deck_slivers",             "name": "Slivers",           "type": "deck"    }
+]
+```
+
+---
+
+### `POST /api/collection`
+Adds a card to the collection. If the card does not yet exist in the `cards` table it is inserted first (upsert). If the card already exists in the collection the quantity is incremented.
+
+**Request body:**
+```json
+{
+  "cardId":          "e882c9f9-bf30-46b6-bedc-379d2c80e5cb",
+  "setId":           "d5b99bde-9e8e-4474-8c9e-8c2b18efb1e4",
+  "setCode":         "afr",
+  "setName":         "Adventures in the Forgotten Realms",
+  "name":            "+2 Mace",
+  "manaCost":        "{1}{W}",
+  "cmc":             2.0,
+  "typeLine":        "Artifact — Equipment",
+  "rarity":          "common",
+  "oracleText":      "Equipped creature gets +2/+2.\nEquip {3}",
+  "power":           null,
+  "toughness":       null,
+  "artist":          "Jarel Threat",
+  "flavorText":      null,
+  "collectorNumber": "3",
+  "imageNormal":     "https://c1.scryfall.com/file/scryfall-cards/normal/...",
+  "imageNormalBack": null,
+  "colors":          ["W"],
+  "faces":           null,
+  "usd":             0.12,
+  "usdFoil":         null,
+  "locationId":      1,
+  "quantity":        1,
+  "isFoil":          false
+}
+```
+
+`cardId`, `setId`, `setCode`, `setName`, `name`, `rarity`, `locationId`, and `quantity` are required. All other card fields are optional.
+
+**Response:** `201 Created` (no body)
+
+**Transaction behaviour:** all inserts (set, card, images, colors, faces, prices, collection, collection_locations) run in a single transaction and roll back together on failure.
+
+---
+
+### `POST /api/prices/update`
+Downloads Scryfall's `default_cards` bulk data file (updated every 12 hours) and stream-parses it to update `usd` and `usd_foil` in the `card_prices` table for every card in the collection. Uses a single bulk download instead of per-card API calls to avoid rate limiting.
+
+**Response:**
+```json
+{ "updated": 1847 }
+```
+`updated` is the number of collection cards whose prices were found in the bulk file and written.
+
+> This request downloads ~300 MB and streams through ~70 k card objects. Expect it to take 30–90 seconds depending on network speed.
+
+---
+
+### `GET /api/sets`
+Returns all card sets from the `sets` table, sorted alphabetically by name.
+
+**Response** — array of set objects:
+```json
+[
+  { "code": "afr", "name": "Adventures in the Forgotten Realms" },
+  { "code": "eld", "name": "Throne of Eldraine" }
+]
+```
+
+---
+
+### `POST /api/sets/update`
+Fetches the full list of card sets from Scryfall (`https://api.scryfall.com/sets`) and upserts each set into the `sets` table.
+
+**Response:**
+```json
+{ "count": 742 }
+```
+`count` is the number of sets returned by Scryfall (and upserted). Each set row is inserted on first call and updated on subsequent calls.
+
+---
+
 ### `GET /api/collection`
 Returns all cards in the collection.
 
@@ -204,11 +295,26 @@ backend/
     ├── java/com/mtgcards/
     │   ├── MtgCardsApplication.java                 Entry point
     │   ├── controller/
-    │   │   └── CollectionController.java            REST controllers
+    │   │   ├── CollectionController.java            GET /api/collection, POST /api/collection
+    │   │   ├── LocationController.java              GET /api/locations
+    │   │   ├── PriceController.java                 POST /api/prices/update
+    │   │   └── SetController.java                   GET /api/sets, POST /api/sets/update
     │   ├── dto/
-    │   │   └── CollectionCardDto.java               API response shapes (Java records)
-    │   └── repository/
-    │       └── CollectionRepository.java            JdbcTemplate data access
+    │   │   ├── AddCardRequest.java                  POST /api/collection request body
+    │   │   ├── CardFaceDto.java                     Per-face data (DFC cards)
+    │   │   ├── CollectionCardDto.java               GET /api/collection response shape
+    │   │   ├── LocationDto.java                     GET /api/locations response shape
+    │   │   ├── SetDto.java                          GET /api/sets response shape
+    │   │   ├── ScryfallBulkDataDto.java             Scryfall bulk-data metadata (download_uri, size)
+    │   │   ├── ScryfallSetDto.java                  Scryfall /sets response — individual set
+    │   │   └── ScryfallSetResponse.java             Scryfall /sets response — wrapper
+    │   ├── repository/
+    │   │   ├── CollectionRepository.java            findAll() — JdbcTemplate data access
+    │   │   └── LocationRepository.java              findAll() — location lookup
+    │   └── service/
+    │       ├── CollectionService.java               addCard() — transactional card upsert
+    │       ├── PriceService.java                    updatePrices() — bulk-data download + stream parse
+    │       └── SetService.java                      updateSets() / getAllSets()
     └── resources/
         └── application.properties                   DB connection (env vars) + server port
 ```

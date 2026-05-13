@@ -41,6 +41,7 @@ interface ScryfallCard {
   toughness?: string
   rarity: string
   set: string
+  set_id: string
   set_name: string
   collector_number: string
   image_uris?: ScryfallImageUris
@@ -76,6 +77,7 @@ function mapCard(sc: ScryfallCard): CollectionCard {
   return {
     id: 0,
     cardId: sc.id,
+    setId: sc.set_id,
     isFoil: false,
     quantity: 0,
     timeUpdated: null,

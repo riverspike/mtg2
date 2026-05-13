@@ -339,7 +339,7 @@ Same layout as **Browse My Collection** with the following differences:
   * Mana color(s)
     * Checkboxes — {W}, {G}, {U}, {B}, {R} with mana icons
   * Card Set
-    * Multi-select, populated from collection data (same list as Browse My Collection)
+    * Multi-select, populated from sets table
   * No Storage Location filter
   * Search button that sends request to Scryfall (see note below) 
 * Table columns are identical to Browse My Collection:
@@ -360,33 +360,51 @@ Same layout as **Browse My Collection** with the following differences:
     * "Quantity" field (required to add a card)
     * "Foil" checkbox (checked = foil, unchecked = not foil)
     * "Add" button to add card to the collection
-* TODO: wire up filters to Scryfall API to populate the table with search results
 
 Refer to https://scryfall.com/docs/api for how to search.  THis is the site we'll use.  Pay attention to any rate limits.  If there is a need to add a delay between requests, be sure to add a comment in the code pointing to the reference in the scryfall documentation.
 
 ### Edit collections
 
+#### Add New Collection
+
+#### Move Card to Collection
+
+#### Rename Collection
+
+#### Delete Collection
+
 ### Updates
 
-## Edit Collections
+Bottom of the page will have a text area to show starting update, error messages, and completion information.
+  * New messages will append to the bottom
+  * User should be able to scroll up to see any previous messages is the box gets filled
 
-### Add New Card
+#### Update Sets
+  * List of card sets
+    * Button labeled "Update Card Set List"
+    * Can get the full list from: https://api.scryfall.com/sets
+    * Should update the "sets" table and add any new ones that are currently not in the list
+    * Update messages should be:
+      * Start: "Starting card set list update..."
+      * Upon error: "Error: " + Any error messages
+      * Completion: 
+        * If no changes: "Done. No changes."
+        * If changes: "Done. Added " + number of new sets + " new set." (singular) or "new sets." (plural)
 
-### Add New Collection
+#### Update Values
+  * Card prices
+    * Button labeled "Update Card Prices"
+    * Use scryfall's bulk update to avoid too many requests
+      * see https://scryfall.com/docs/api/bulk-data/
+    * Update messages:
+      * Start: "Starting card price update (this will take a while)..."
+      * Upon Error: "Error: "+ any error messages
+      * Completion: "Done. Updated prices for " + number of cards + " card." (singular) or "cards." (plural)
 
-### Move Card to Collection
 
-### Rename Collection
 
-### Delete Collection
 
-### Delete Card
 
-## Updates
-
-### Update Sets
-
-### Update Values
 
 —--------------------------
 Functionalty notes (not specs)

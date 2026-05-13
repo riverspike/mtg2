@@ -85,12 +85,22 @@ npx tsc --noEmit
 - Click a card name to open a detail popup with card image, oracle text, and flavor text
 - Double-sided cards show both face images; clicking a face enlarges it and shows that face's details
 
+### Updates
+- **Update Card Set List** button fetches the full set list from Scryfall and upserts it into the database; shows count of new vs. updated sets
+- **Update Card Prices** button fetches current `usd` and `usd_foil` prices from Scryfall for every card in the database, one card per 100 ms; note warns this will take time
+- Both buttons disable while running and display success or error feedback
+
 ### Search MTG Database
-- Filters: name, color, card set
+- Filters: name, color, card set (multi-select, populated from all sets in the database)
 - **Search Scryfall** button sends a query to the Scryfall API and populates the table
 - Button is disabled until at least one filter is set
 - Results show the same table columns and support the same card detail popup
 - Respects Scryfall rate limit (100 ms between paginated requests)
+- Card detail popup includes an **Add to Collection** form:
+  - Location dropdown (all storage locations from `GET /api/locations`)
+  - Quantity number input (min 1)
+  - Foil checkbox
+  - **Add to Collection** button — posts to `POST /api/collection`, upserts the card and increments quantity
 
 ---
 
@@ -109,22 +119,26 @@ frontend/
     ├── App.tsx                Root — tab nav + view routing
     ├── index.css              Global styles (dark MTG theme)
     ├── types/
-    │   └── card.ts            CollectionCard, CardFace, CardFiltersState interfaces
+    │   └── card.ts            CollectionCard, CardFace, CardFiltersState, LocationOption interfaces
     ├── store/
     │   ├── index.ts           Redux store — exports RootState, AppDispatch
     │   ├── collectionSlice.ts fetchCollection thunk + collection state
     │   └── hooks.ts           useAppDispatch, useAppSelector typed hooks
     ├── utils/
     │   ├── manaSymbols.ts     Symbol → SVG URL mapping (all mana symbols)
-    │   └── scryfallApi.ts     Scryfall search — query builder, API call, response mapper
+    │   ├── scryfallApi.ts     Scryfall search — query builder, API call, response mapper
+    │   ├── collectionApi.ts   addCardToCollection — POST /api/collection
+    │   ├── setsApi.ts         fetchAllSets — GET /api/sets
+    │   └── updatesApi.ts      updateCardSetList — POST /api/sets/update
     ├── components/
     │   ├── CardFilters.tsx    Shared filter bar (name, color, optional sets/locations)
     │   ├── CollectionTable.tsx Sortable paginated card table
-    │   ├── CardDetailModal.tsx Card detail popup (single-sided + double-sided)
+    │   ├── CardDetailModal.tsx Card detail popup + Add to Collection form (Search tab)
     │   └── ManaText.tsx       Renders {TOKEN} mana cost strings as icon images
     ├── views/
     │   ├── BrowseCollection.tsx  Browse My Collection tab
-    │   └── SearchMtgDatabase.tsx Search MTG Database tab
+    │   ├── SearchMtgDatabase.tsx Search MTG Database tab
+    │   └── Updates.tsx           Updates tab (Update Card Set List)
     └── images/
         ├── card-back.jpg
         └── mana/              SVG mana symbol icons
@@ -147,9 +161,14 @@ frontend/
 
 ## API Dependencies
 
-| Endpoint          | Method | Description                        |
-|-------------------|--------|------------------------------------|
-| `/api/collection` | GET    | Returns all cards in the collection |
+| Endpoint          | Method | Description                              |
+|-------------------|--------|------------------------------------------|
+| `/api/collection` | GET    | Returns all cards in the collection      |
+| `/api/collection` | POST   | Adds a card (upserts card + increments quantity) |
+| `/api/locations`  | GET    | Returns all storage locations and decks  |
+| `/api/sets`        | GET   | Returns all sets from the database (code + name)         |
+| `/api/prices/update` | POST | Fetches current card prices from Scryfall (100 ms/card)  |
+| `/api/sets/update` | POST  | Fetches sets from Scryfall and upserts into the database |
 
 ### External APIs
 

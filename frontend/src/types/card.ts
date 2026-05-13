@@ -9,9 +9,16 @@ export interface CardFace {
   toughness: string | null
 }
 
+export interface LocationOption {
+  locationId: number
+  name: string
+  type: string
+}
+
 export interface CollectionCard {
   id: number
   cardId: string
+  setId?: string | null
   isFoil: boolean
   quantity: number
   timeUpdated: string | null

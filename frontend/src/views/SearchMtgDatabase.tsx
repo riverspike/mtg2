@@ -1,31 +1,46 @@
-import { useMemo, useState } from 'react'
-import { useAppSelector } from '../store/hooks'
+import { useEffect, useMemo, useState } from 'react'
+import { useAppDispatch } from '../store/hooks'
+import { fetchCollection } from '../store/collectionSlice'
 import CardFilters from '../components/CardFilters'
 import CollectionTable from '../components/CollectionTable'
 import CardDetailModal from '../components/CardDetailModal'
 import { searchScryfall } from '../utils/scryfallApi'
-import type { CollectionCard, CardFiltersState } from '../types/card'
+import { fetchAllSets } from '../utils/setsApi'
+import type { SetOption } from '../utils/setsApi'
+import type { CollectionCard, CardFiltersState, LocationOption } from '../types/card'
 
 const EMPTY_FILTERS: CardFiltersState = { name: '', colors: [], sets: [], locations: [] }
 
 export default function SearchMtgDatabase() {
-  const { cards } = useAppSelector(state => state.collection)
-  const [filters, setFilters] = useState<CardFiltersState>(EMPTY_FILTERS)
-  const [results, setResults] = useState<CollectionCard[]>([])
+  const dispatch = useAppDispatch()
+  const [filters,      setFilters]      = useState<CardFiltersState>(EMPTY_FILTERS)
+  const [results,      setResults]      = useState<CollectionCard[]>([])
   const [selectedCard, setSelectedCard] = useState<CollectionCard | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [loading,      setLoading]      = useState(false)
+  const [error,        setError]        = useState<string | null>(null)
+  const [locations,    setLocations]    = useState<LocationOption[]>([])
+  const [allSetsData,  setAllSetsData]  = useState<SetOption[]>([])
 
-  const allSets = useMemo(
-    () => [...new Set(cards.map(c => c.setName).filter(Boolean))].sort(),
-    [cards]
-  )
+  useEffect(() => {
+    fetch('/api/locations')
+      .then(r => r.json() as Promise<LocationOption[]>)
+      .then(setLocations)
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetchAllSets()
+      .then(setAllSetsData)
+      .catch(() => {})
+  }, [])
+
+  const allSets = useMemo(() => allSetsData.map(s => s.name), [allSetsData])
 
   const setCodeByName = useMemo(() => {
     const map: Record<string, string> = {}
-    cards.forEach(c => { if (c.setName && c.setCode) map[c.setName] = c.setCode })
+    allSetsData.forEach(s => { map[s.name] = s.code })
     return map
-  }, [cards])
+  }, [allSetsData])
 
   const canSearch =
     filters.name.trim().length > 0 ||
@@ -71,7 +86,12 @@ export default function SearchMtgDatabase() {
       }
 
       {selectedCard && (
-        <CardDetailModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+        <CardDetailModal
+          card={selectedCard}
+          onClose={() => setSelectedCard(null)}
+          locations={locations}
+          onAdded={() => dispatch(fetchCollection())}
+        />
       )}
     </>
   )
