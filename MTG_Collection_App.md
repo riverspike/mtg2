@@ -486,3 +486,61 @@ Every operation logs three message types in sequence:
 ---------------------------
 ## Current issues
 
+### TODO 1 — PriceService: Batch price updates
+
+Replace the per-card `jdbc.update()` loop in `PriceService` with `jdbc.batchUpdate()` so all price rows are sent in a single round-trip instead of one per card.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| PriceService | Replace individual `jdbc.update()` with `jdbc.batchUpdate()` | Low | Dramatic reduction in DB round-trips during bulk price sync |
+
+---
+
+### TODO 2 — SetService: Track inserts by return value
+
+Replace the COUNT-before / COUNT-after pattern in `SetService` with checking the return value of `jdbc.update()` (returns 1 on insert, 0 on `INSERT IGNORE` skip) to count new sets without extra queries.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| SetService | Track inserts by `jdbc.update()` return value instead of COUNT before/after | Low | Removes 2 COUNT queries per sync; more accurate |
+
+---
+
+### TODO 3 — CollectionService: Eliminate SELECT after upsert
+
+After the `INSERT … ON DUPLICATE KEY UPDATE` in `CollectionService.addCard()`, remove the follow-up `SELECT collection_id` and instead use `LAST_INSERT_ID()` (returned by the JDBC update) to get the new row's ID without an extra round-trip.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| CollectionService | Use `LAST_INSERT_ID()` instead of SELECT after upsert | Low | One fewer DB round-trip per card add |
+
+---
+
+### TODO 4 — LocationService: Extract shared validation method
+
+`createLocation` and `renameLocation` both contain identical name-uniqueness check logic. Extract it into a private `validateUniqueName(String name, Integer excludeId)` method.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| LocationService | Extract shared `validateUniqueName()` helper | Low | Eliminates copy-paste; single maintenance point for uniqueness rule |
+
+---
+
+### TODO 5 — PriceService: Inject ObjectMapper as Spring bean
+
+`PriceService` creates a `new ObjectMapper()` manually, bypassing any app-wide Jackson configuration. Inject the `ObjectMapper` bean via constructor instead.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| PriceService | Inject `ObjectMapper` as Spring bean instead of manual `new ObjectMapper()` | Low | Picks up app-wide Jackson config (date formats, modules, etc.) automatically |
+
+---
+
+### TODO 6 — CollectionRepository: Replace correlated subqueries with separate queries + merge
+
+The `findAll()` query in `CollectionRepository` uses correlated subqueries (one per row) to aggregate location data. Replace with two flat queries — one for collection rows, one for location rows — and merge them in Java. Scales significantly better with large collections.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| CollectionRepository | Replace correlated subqueries with two flat queries merged in Java | High | Scales better with large collections; eliminates N correlated lookups |
+
