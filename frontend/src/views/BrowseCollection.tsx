@@ -1,29 +1,38 @@
-import { useMemo, useState } from 'react'
-import { useAppSelector } from '../store/hooks'
+import { useEffect, useMemo, useState } from 'react'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { fetchCollection } from '../store/collectionSlice'
 import CardFilters, { EMPTY_FILTERS } from '../components/CardFilters'
 import CollectionTable from '../components/CollectionTable'
 import CardDetailModal from '../components/CardDetailModal'
-import type { CollectionCard, CardFiltersState } from '../types/card'
+import type { CollectionCard, CardFiltersState, LocationOption } from '../types/card'
 
 function cardPrice(card: CollectionCard): number {
   return card.isFoil ? (card.usdFoil ?? 0) : (card.usd ?? 0)
 }
 
 export default function BrowseCollection() {
+  const dispatch = useAppDispatch()
   const { cards, status, error } = useAppSelector(state => state.collection)
-  const [filters, setFilters] = useState<CardFiltersState>(EMPTY_FILTERS)
+  const [filters,      setFilters]      = useState<CardFiltersState>(EMPTY_FILTERS)
   const [selectedCard, setSelectedCard] = useState<CollectionCard | null>(null)
+  const [locations,    setLocations]    = useState<LocationOption[]>([])
+
+  useEffect(() => {
+    fetch('/api/locations')
+      .then(r => r.json() as Promise<LocationOption[]>)
+      .then(setLocations)
+      .catch(() => {})
+  }, [])
 
   const allSets = useMemo(
     () => [...new Set(cards.map(c => c.setName).filter(Boolean))].sort(),
     [cards]
   )
 
-  const allLocations = useMemo(() => {
-    const locs = new Set<string>()
-    cards.forEach(c => c.locations?.split(',').forEach(l => locs.add(l.trim())))
-    return [...locs].filter(Boolean).sort()
-  }, [cards])
+  const allLocations = useMemo(
+    () => locations.map(l => l.name).sort((a, b) => a.localeCompare(b)),
+    [locations],
+  )
 
   const filteredCards = useMemo(() => cards.filter(card => {
     if (filters.name && !card.name.toLowerCase().includes(filters.name.toLowerCase())) return false
@@ -81,7 +90,12 @@ export default function BrowseCollection() {
       )}
 
       {selectedCard && (
-        <CardDetailModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+        <CardDetailModal
+          card={selectedCard}
+          onClose={() => setSelectedCard(null)}
+          locations={locations}
+          onUpdated={() => dispatch(fetchCollection())}
+        />
       )}
     </>
   )

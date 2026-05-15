@@ -17,13 +17,28 @@ public class LocationRepository {
 
     public List<LocationDto> findAll() {
         return jdbc.query(
-                "SELECT location_id, location_key, name, type FROM locations ORDER BY name",
-                (rs, rowNum) -> new LocationDto(
-                        rs.getInt("location_id"),
-                        rs.getString("location_key"),
-                        rs.getString("name"),
-                        rs.getString("type")
+                "SELECT location_id, name, type FROM locations ORDER BY name",
+                this::mapRow
+        );
+    }
+
+    public List<LocationDto> findEmpty() {
+        return jdbc.query("""
+                SELECT location_id, name, type FROM locations l
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM collection_locations cl WHERE cl.location_id = l.location_id
                 )
+                ORDER BY name
+                """,
+                this::mapRow
+        );
+    }
+
+    private LocationDto mapRow(java.sql.ResultSet rs, int rowNum) throws java.sql.SQLException {
+        return new LocationDto(
+                rs.getInt("location_id"),
+                rs.getString("name"),
+                rs.getString("type")
         );
     }
 }

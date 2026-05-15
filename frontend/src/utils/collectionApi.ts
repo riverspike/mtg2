@@ -44,3 +44,36 @@ export async function addCardToCollection(
     throw new Error(text || `Failed to add card (${res.status})`)
   }
 }
+
+async function throwOnError(res: Response, fallback: string): Promise<void> {
+  if (res.ok) return
+  let message = fallback
+  try {
+    const json = await res.json()
+    if (json?.message) message = json.message
+  } catch {}
+  throw new Error(message)
+}
+
+export async function updateCollectionQuantity(collectionId: number, quantity: number): Promise<void> {
+  const res = await fetch(`/api/collection/${collectionId}/quantity`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ quantity }),
+  })
+  await throwOnError(res, `Failed to update quantity (${res.status})`)
+}
+
+export async function moveCollectionCard(
+  collectionId: number,
+  fromLocationId: number,
+  toLocationId: number,
+  quantity: number,
+): Promise<void> {
+  const res = await fetch(`/api/collection/${collectionId}/move`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fromLocationId, toLocationId, quantity }),
+  })
+  await throwOnError(res, `Failed to move card (${res.status})`)
+}

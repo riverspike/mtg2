@@ -153,8 +153,7 @@
 
 | Column | Data Type | Name | Description |
 | :---- | :---- | :---- | :---- |
-| location\_id | INT | Location ID | Foreign key to identify location |
-| location\_key | VARCHAR(80) | Location Key | Human-readable slug (e.g. storage\_box\_1) |
+| location\_id | INT | Location ID | Auto-increment primary key |
 | name | VARCHAR(120) | Location Name | Display name of the location |
 | type | VARCHAR(40) | Location Type | Type of location (deck, storage, etc.) |
 
@@ -255,184 +254,235 @@ When a color is indicated, the image for the color should replace the text versi
 
 ## Home Page
 
-* Above table, buttons with options for each subheader in this section  
-  * Default to “**Browse My Collection**”  
-* Information shown below buttons  
-  * Total card count  
-  * Total value of cards  
-  * Total Cards shown (after filters applied)  
-  * Total value of cards shown (after filters applied)  
-* Table with entire collection  
-  * Paginated to show *n* rows  
-    * Value for *n* can be chosen from a dropdown  
-    * Values for *n* can be 50, 100, 150, 200, 500   
-* Columns visible by default:  
-  * Name  
-    * DB cards.name  
-  * Quantity  
-    * DB collection.quantity  
-  * Color  
-    * DB card\_colors.color  
-  * Type  
-    * DB cards.type\_line  
-  * Card Set  
-    * DB cards set\_id  
-  * Collector Number  
-    * DB cards.collector\_number  
-  * Foil  
-    * DB cards.foil  
-  * Storage Location  
-    * DB locations.name  
-  * Value  
-    * If not foil (default): DB card\_prices.usd  
-    * If foil: DB card\_prices.usd\_foil  
-  * Last Updated Date  
-    * DB card\_prices.updated\_at  
-* 
+* Navigation tabs at the top for each subheader in this section
+  * Default to “**Browse My Collection**”
+
+### Shared
+
+#### Table Columns
+
+The following columns appear in both Browse My Collection and Search MTG Database and are sortable by any column:
+
+| Column | DB Source | Notes |
+|--------|-----------|-------|
+| Name | cards.name | Click to open card detail pop-up |
+| Qty | collection.quantity | |
+| Mana | cards.mana\_cost | Displayed as mana icons; sortable by CMC |
+| Type | cards.type\_line | |
+| Card Set | sets.name | |
+| No. | cards.collector\_number | |
+| Foil | collection.is\_foil | |
+| Location | locations.name | |
+| Value | card\_prices.usd / card\_prices.usd\_foil | Non-foil uses usd; foil uses usd\_foil |
+| Price Updated | card\_prices.updated\_at | |
+
+* Paginated — rows per page selectable from a dropdown: 50, 100, 150, 200, 500
+
+#### Shared Filters
+
+The following filters appear in both Browse My Collection and Search MTG Database:
+
+* Name — input box
+* Mana color(s) — checkboxes: {W}, {U}, {B}, {R}, {G} with mana icons
+* Card Set — multi-select dropdown populated from `sets.name`
+
+#### Card Detail Pop-up
+
+Triggered by clicking a card's Name in the table. Displays:
+
+* Name of the card at the top
+* Card image(s) — DB: card\_images
+  * Single-sided cards: front image only
+  * Double-sided cards: front and back shown side-by-side
+    * Clicking the front makes it large and the back small, and vice versa
+    * Clicking an image toggles between small and large
+* Card details below the image(s). Double-sided cards show data for the selected side:
+  * Rarity — DB cards.rarity
+  * Foil checkbox (read-only) — DB collection.is\_foil
+  * Mana cost — DB cards.mana\_cost
+  * Type — DB cards.type\_line
+  * Oracle Text — DB cards.oracle\_text
+  * Flavor Text — DB cards.flavor\_text
+  * Power (if not null) — DB cards.power
+  * Toughness (if not null) — DB cards.toughness
+
+---
 
 ### Browse My Collection
 
-* Filters at the top of the table to filter collection by  
-  * Name  
-    * Input box  
-  * Mana color(s)  
-    * Checkboxes  
-      * {R}, {G}, {W}, {U}, {B}  
-  * Card set  
-    * Multi-select dropdown using DB sets.name  
-  * Storage Location  
-    * Multi-select dropdown using DB locations.name  
-* Sort by any of the visible columns  
-* Click on “Name” to show a pop-up  
-  * Name of the card at the top  
-  * Small card image (front and back)  
-    * DB: card\_images ?  
-    * Single sided cards only need to show the front  
-    * Double sided cards should show front and back side-by-side
-      * Clicking front should show the large image of the front side and small image of back side and vise versa.
-    * Clicking image toggles between small and large formats of image  
-  * Below image(s) should show card details.  Double sided cards should show the data for the selected side of the card. 
-    * Rarity  
-      * DB cards.rarity  
-    * Mana cost  
-      * DB cards.mana\_cost  
-    * Type(s)  
-      * DB cards.type\_line  
-    * Oracle Text  
-      * DB cards.oracle\_text  
-    * Flavor Text  
-      * DB cards.flavor\_text  
-    * Power (if not null)  
-      * DB cards.power  
-    * Toughness (if not null)  
-      * DB cards.toughness
+* Stats bar above the table:
+  * Total card count
+  * Total value of cards
+  * Total cards shown (after filters applied)
+  * Total value of cards shown (after filters applied)
+* Filters — see Shared Filters, plus:
+  * Storage Location — multi-select dropdown using DB locations.name
+* Table — see Shared Table Columns
+* Card detail pop-up — see Shared Card Detail Pop-up, with an additional section at the bottom:
+  * **Edit Card in Collection**
+    * Change Quantity in Collection
+      * When clicked, show:
+        * Text box labeled “New quantity”
+        * Button labeled “Update Quantity”
+          * Affects only the foil or non-foil version of the card that was selected
+          * When clicked:
+            * If quantity = 0: delete the row from `collection` and all corresponding rows from `collection_locations` for that `collection_id`. Do not remove anything from `cards`, `card_prices`, `card_colors`, `card_keywords`, `card_legalities`, `card_faces`, `card_images`, or any other card-data tables — those represent the card itself, not ownership.
+            * If quantity > 0: update the `quantity` field in the `collection` row for that `collection_id`
+    * Move card(s) to new location
+      * When clicked, show:
+        * Dropdown labeled “New location” (source: `locations` table)
+        * Text box labeled “Quantity to move”
+        * Button labeled “Update location”
+          * Show an error if quantity to move > quantity in the collection or quantity to move = 0
+          * If quantity is valid:
+            * Source location: decrease `collection_locations.quantity` by the quantity moved for the matching `collection_id` + source `location_id`. If that quantity reaches 0, delete the `collection_locations` row entirely.
+            * Destination location: if a `collection_locations` row already exists for the same `collection_id` + destination `location_id`, increase its `quantity` by the quantity moved. If no row exists, insert a new `collection_locations` row.
+            * `collection.quantity` does not change — only the per-location distribution changes.
+
+---
 
 ### Search MTG Database
 
-Same layout as **Browse My Collection** with the following differences:
+* No stats bar
+* Filters — see Shared Filters, no Storage Location filter, plus:
+  * Search button — sends request to Scryfall (see Scryfall note below)
+* Table — see Shared Table Columns; starts empty and is populated by a Scryfall query
+* Card detail pop-up — see Shared Card Detail Pop-up, with an additional section at the bottom:
+  * **Add to Collection**
+    * Location dropdown — required; populated from `locations` table
+    * Quantity field — required
+    * Foil checkbox (checked = foil, unchecked = not foil)
+    * Add button
 
-* No stats bar (totals and values are not shown)
-* Table starts empty — results are populated by a Scryfall query (not yet implemented)
-* Filters available:
-  * Name
-    * Input box
-  * Mana color(s)
-    * Checkboxes — {W}, {G}, {U}, {B}, {R} with mana icons
-  * Card Set
-    * Multi-select, populated from sets table
-  * No Storage Location filter
-  * Search button that sends request to Scryfall (see note below) 
-* Table columns are identical to Browse My Collection:
-  * Name — click to open card detail pop-up
-  * Qty
-  * Mana — DB cards.mana\_cost, displayed as mana icons, sortable by CMC
-  * Type — DB cards.type\_line
-  * Card Set — DB sets.name
-  * No. — DB cards.collector\_number
-  * Foil — DB collection.is\_foil
-  * Location — DB locations.name
-  * Value — DB card\_prices.usd / usd\_foil
-  * Price Updated — DB card\_prices.updated\_at
-* Card detail pop-up works the same as Browse My Collection
-  * At the bottom of the popup, there should be:
-    * "Location" field (required to add a card)
-      * Dropdown with all storage locations
-    * "Quantity" field (required to add a card)
-    * "Foil" checkbox (checked = foil, unchecked = not foil)
-    * "Add" button to add card to the collection
+Refer to https://scryfall.com/docs/api for how to search. Pay attention to any rate limits. If a delay between requests is needed, add a comment in the code pointing to the relevant section of the Scryfall documentation.
 
-Refer to https://scryfall.com/docs/api for how to search.  THis is the site we'll use.  Pay attention to any rate limits.  If there is a need to add a delay between requests, be sure to add a comment in the code pointing to the reference in the scryfall documentation.
+### Edit Locations
 
-### Edit collections
+Buttons for each of the following:
 
-#### Add New Collection
+#### Shared Rules
 
-#### Move Card to Collection
+The following rules apply to both Add New Location and Rename Location.
 
-#### Rename Collection
+**Location Name input format**
+  * Only letters, numbers, and spaces are allowed — no special characters
+  * Maximum 60 characters
+  * Validate on button click, not in real time
 
-#### Delete Collection
+**Name uniqueness**
+  * Location Name must be unique, validated against `locations.name`
+  * Validation is case-insensitive: "Box A" and "box a" are considered the same
+  * If not unique, display in Pop-up text area: "That location name already exists. Need to choose a unique location name."
+  * For Rename only: the currently selected location is excluded from this check, so a location may be saved with its existing name without triggering an error
+
+---
+
+#### Add New Location
+
+Open popup with:
+  * Close button.
+  * Title: Add New Location
+  * Input box labeled "Location Name" — see Shared Rules for format and validation
+  * Radio button "Location Type"
+    * Options
+      * Storage (default)
+      * Deck
+  * Button labeled "Create Location"
+    * On click, apply Shared Rules validation
+    * If valid, display message in Pop-up text area: "Creating new location..."
+    * Create a new row in the "locations" table:
+      * `location_id` — standard AUTO\_INCREMENT primary key
+      * `name` — the Location Name as entered
+      * `type` — Location Type converted to lowercase
+    * When created, add a message in the Pop-up text area: "New Location " + Location Name + " created and now usable to add cards."
+    * Clear the Location Name input box to allow for a new location to be created
+    * Do not clear the Pop-up text
+    * Pop-up remains open
+  * Pop-up text area to display messages to user
+
+
+#### Rename Location
+
+Open popup with:
+  * Close button.
+  * Title: Rename Location
+  * Dropdown labeled "Choose Location to Rename"
+    * Populated from the "locations" table, sorted alphabetically
+    * Single-select
+  * When a location is selected from the dropdown:
+    * Show input box labeled "Location Name" — see Shared Rules for format and validation
+      * Pre-populated with the current name of the selected location
+    * Show Radio button "Location Type" with the current type pre-selected
+      * Options
+        * Storage
+        * Deck
+    * Button labeled "Update Location"
+      * On click, apply Shared Rules validation (excluding the selected location from the uniqueness check)
+      * If valid, display message in Pop-up text area: "Updating location..."
+      * Update the matching row in the "locations" table:
+        * `name` — updated to the new Location Name
+        * `type` — updated to the Location Type converted to lowercase
+      * When updated, add a message in the Pop-up text area: "Location " + old name + " renamed to " + new name + "."
+      * Refresh the "Choose Location to Rename" dropdown to reflect the updated name
+      * Do not clear the Pop-up text
+      * Pop-up remains open
+  * Pop-up text area to display messages to user
+
+
+#### Delete Location
+
+Open popup with:
+  * Close button.
+  * Title: Delete Location
+  * Informational text at the top: "Only empty locations can be deleted. Move all the cards from one location to another before trying to delete a location."
+  * Dropdown labeled "Choose Location to Delete"
+    * Populated only with locations that have 0 cards — determined by checking that no rows exist in `collection_locations` for that `location_id`
+    * Sorted alphabetically
+    * Single-select
+    * If no empty locations exist, the dropdown is empty and the Delete Location button is hidden
+  * Button labeled "Delete Location" — only shown when a location is selected
+    * On click, show an inline confirmation message: "Are you sure you want to delete this location?"
+      * "Yes" button — proceeds with deletion
+      * "No" button — cancels and returns to the dropdown without any changes
+    * If Yes is selected:
+      * Display message in Pop-up text area: "Deleting location..."
+      * Delete the matching row from the `locations` table
+      * When deleted, add a message in the Pop-up text area: "Location " + location name + " has been deleted."
+      * Clear the dropdown selection and refresh the dropdown to remove the deleted location
+      * Do not clear the Pop-up text
+      * Pop-up remains open
+  * Pop-up text area to display messages to user
 
 ### Updates
 
-Bottom of the page will have a text area to show starting update, error messages, and completion information.
-  * New messages will append to the bottom
-  * User should be able to scroll up to see any previous messages is the box gets filled
+A text area at the bottom of the page displays operation progress. Messages append to the bottom; the user can scroll up to see previous messages.
+
+#### Shared Message Format
+
+Every operation logs three message types in sequence:
+* **Start** — logged immediately when the button is clicked
+* **Error** — logged if the operation fails: `"Error: " + error message`
+* **Completion** — logged when the operation finishes (see each operation for the specific text)
 
 #### Update Sets
-  * List of card sets
-    * Button labeled "Update Card Set List"
-    * Can get the full list from: https://api.scryfall.com/sets
-    * Should update the "sets" table and add any new ones that are currently not in the list
-    * Update messages should be:
-      * Start: "Starting card set list update..."
-      * Upon error: "Error: " + Any error messages
-      * Completion: 
-        * If no changes: "Done. No changes."
-        * If changes: "Done. Added " + number of new sets + " new set." (singular) or "new sets." (plural)
+
+* Button labeled "Update Card Set List"
+* Source: https://api.scryfall.com/sets
+* Updates the `sets` table; inserts any sets not already present
+* Messages:
+  * Start: `"Starting card set list update..."`
+  * Completion (no changes): `"Done. No changes."`
+  * Completion (changes): `"Done. Added " + n + " new set."` (singular) or `"new sets."` (plural)
 
 #### Update Values
-  * Card prices
-    * Button labeled "Update Card Prices"
-    * Use scryfall's bulk update to avoid too many requests
-      * see https://scryfall.com/docs/api/bulk-data/
-    * Update messages:
-      * Start: "Starting card price update (this will take a while)..."
-      * Upon Error: "Error: "+ any error messages
-      * Completion: "Done. Updated prices for " + number of cards + " card." (singular) or "cards." (plural)
+
+* Button labeled "Update Card Prices"
+* Uses Scryfall bulk data to avoid excessive API requests — see https://scryfall.com/docs/api/bulk-data/
+* Messages:
+  * Start: `"Starting card price update (this will take a while)..."`
+  * Completion: `"Done. Updated prices for " + n + " card."` (singular) or `"cards."` (plural)
 
 
+---------------------------
+## Current issues
 
-
-
-
-—--------------------------
-Functionalty notes (not specs)
-
-**Card Finder (Scryfall Search)**
-
-* Search by name, collector number, set, and language  
-* View full card details from search results  
-* Select foil / non-foil  
-* Select target location  
-* Enter quantity and add card to collection
-
-**Card Movement**
-
-* Move cards between locations  
-* Select source and destination location  
-* Specify quantity to move  
-* Validation (e.g. prevent moving to same location)
-
-**Location Management**
-
-* Create new storage location  
-* Create new deck location  
-* Select location type (Storage or Deck)
-
-**Pricing**
-
-* View regular and foil prices per card  
-* View total value (quantity × price) for filtered results
-
-------------------------------------

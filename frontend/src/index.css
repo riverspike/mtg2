@@ -487,6 +487,14 @@ tr.rarity-common   td { border-left: 3px solid #444; }
 
 .card-details dd { color: #e0e0e0; }
 
+.foil-status-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e0e0e0;
+  cursor: default;
+}
+
 .card-details .oracle {
   white-space: pre-wrap;
   font-size: 0.9rem;
@@ -605,6 +613,75 @@ tr.rarity-common   td { border-left: 3px solid #444; }
   font-size: 0.9rem;
 }
 
+.edit-btn-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.edit-toggle-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: #0f3460;
+  color: #e0e0e0;
+  border: 1px solid #1a4a80;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.edit-toggle-btn:hover { background: #1a4a80; }
+
+.edit-toggle-btn.active {
+  background: #c8a951;
+  color: #0a0a1a;
+  border-color: #c8a951;
+}
+
+.edit-current-qty {
+  color: #888;
+  font-size: 0.82rem;
+  margin: 0 0 12px;
+}
+
+.delete-location-info {
+  color: #c8a951;
+  font-size: 0.85rem;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.delete-location-none {
+  color: #888;
+  font-size: 0.88rem;
+  margin: 0 0 12px;
+}
+
+.delete-btn {
+  background: #7a1e1e;
+  border-color: #a02828;
+}
+
+.delete-btn:hover:not(:disabled) {
+  background: #a02828;
+}
+
+.delete-confirm {
+  margin-top: 4px;
+}
+
+.delete-confirm-msg {
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+}
+
+.delete-confirm-btns {
+  display: flex;
+  gap: 10px;
+}
+
 /* ── Updates tab ─────────────────────────────────────────── */
 
 .updates-view   { padding: 24px; }
@@ -625,6 +702,40 @@ tr.rarity-common   td { border-left: 3px solid #444; }
   padding: 10px 12px;
   resize: vertical;
   box-sizing: border-box;
+}
+
+/* ── Edit Locations view ─────────────────────────────────── */
+
+.edit-locations-view {
+  padding: 24px 0;
+}
+
+.edit-location-btn-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.location-type-options {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e0e0e0;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.radio-option input { cursor: pointer; }
+
+.location-log {
+  margin-top: 16px;
+  height: 120px;
 }
 
 /* ── Misc ────────────────────────────────────────────────── */

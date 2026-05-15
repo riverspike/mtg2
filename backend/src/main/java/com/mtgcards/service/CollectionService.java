@@ -133,4 +133,48 @@ public class CollectionService {
                 """,
                 collectionId, locationId, quantity);
     }
+
+    @Transactional
+    public void updateQuantity(int collectionId, int quantity) {
+        if (quantity < 0) throw new IllegalArgumentException("Quantity cannot be negative");
+        if (quantity == 0) {
+            jdbc.update("DELETE FROM collection_locations WHERE collection_id = ?", collectionId);
+            jdbc.update("DELETE FROM collection WHERE collection_id = ?", collectionId);
+        } else {
+            jdbc.update("UPDATE collection SET quantity = ? WHERE collection_id = ?", quantity, collectionId);
+        }
+    }
+
+    @Transactional
+    public void moveCard(int collectionId, int fromLocationId, int toLocationId, int quantity) {
+        if (fromLocationId == toLocationId)
+            throw new IllegalArgumentException("Source and destination locations must be different");
+        if (quantity <= 0)
+            throw new IllegalArgumentException("Quantity to move must be greater than 0");
+
+        Integer sourceQty = jdbc.queryForObject(
+                "SELECT quantity FROM collection_locations WHERE collection_id = ? AND location_id = ?",
+                Integer.class, collectionId, fromLocationId);
+
+        if (sourceQty == null)
+            throw new IllegalArgumentException("Card not found at the specified source location");
+        if (quantity > sourceQty)
+            throw new IllegalArgumentException(
+                    "Quantity to move (" + quantity + ") exceeds available at source (" + sourceQty + ")");
+
+        if (quantity == sourceQty) {
+            jdbc.update("DELETE FROM collection_locations WHERE collection_id = ? AND location_id = ?",
+                    collectionId, fromLocationId);
+        } else {
+            jdbc.update(
+                    "UPDATE collection_locations SET quantity = quantity - ? WHERE collection_id = ? AND location_id = ?",
+                    quantity, collectionId, fromLocationId);
+        }
+
+        jdbc.update("""
+                INSERT INTO collection_locations (collection_id, location_id, quantity)
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)
+                """, collectionId, toLocationId, quantity);
+    }
 }

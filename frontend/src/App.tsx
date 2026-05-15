@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from './store/hooks'
 import { fetchCollection } from './store/collectionSlice'
 import BrowseCollection from './views/BrowseCollection'
 import SearchMtgDatabase from './views/SearchMtgDatabase'
+import EditLocations from './views/EditLocations'
 import Updates from './views/Updates'
 
 interface Tab {
@@ -14,7 +15,7 @@ interface Tab {
 const TABS: Tab[] = [
   { id: 'browse',  label: 'Browse My Collection',  enabled: true  },
   { id: 'search',  label: 'Search MTG Database',    enabled: true  },
-  { id: 'edit',    label: 'Edit Collections',        enabled: false },
+  { id: 'edit',    label: 'Edit Locations',            enabled: true  },
   { id: 'updates', label: 'Updates',                 enabled: true  },
 ]
 
@@ -46,8 +47,9 @@ export default function App() {
         ))}
       </nav>
 
-      {activeTab === 'browse' && <BrowseCollection />}
-      {activeTab === 'search' && <SearchMtgDatabase />}
+      {activeTab === 'browse'  && <BrowseCollection />}
+      {activeTab === 'search'  && <SearchMtgDatabase />}
+      {activeTab === 'edit'    && <EditLocations />}
       {activeTab === 'updates' && <Updates />}
     </div>
   )
