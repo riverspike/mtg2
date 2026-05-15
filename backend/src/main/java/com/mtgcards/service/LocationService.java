@@ -17,14 +17,7 @@ public class LocationService {
     public void createLocation(CreateLocationRequest req) {
         String name = req.name().trim();
         String type = req.type().toLowerCase();
-
-        Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM locations WHERE LOWER(name) = LOWER(?)",
-                Integer.class, name);
-        if (count != null && count > 0)
-            throw new IllegalArgumentException(
-                    "That location name already exists. Need to choose a unique location name.");
-
+        validateUniqueName(name, null);
         jdbc.update(
                 "INSERT INTO locations (name, type) VALUES (?, ?)",
                 name, type);
@@ -33,17 +26,26 @@ public class LocationService {
     public void renameLocation(int locationId, UpdateLocationRequest req) {
         String name = req.name().trim();
         String type = req.type().toLowerCase();
-
-        Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM locations WHERE LOWER(name) = LOWER(?) AND location_id != ?",
-                Integer.class, name, locationId);
-        if (count != null && count > 0)
-            throw new IllegalArgumentException(
-                    "That location name already exists. Need to choose a unique location name.");
-
+        validateUniqueName(name, locationId);
         jdbc.update(
                 "UPDATE locations SET name = ?, type = ? WHERE location_id = ?",
                 name, type, locationId);
+    }
+
+    private void validateUniqueName(String name, Integer excludeId) {
+        Integer count;
+        if (excludeId == null) {
+            count = jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM locations WHERE LOWER(name) = LOWER(?)",
+                    Integer.class, name);
+        } else {
+            count = jdbc.queryForObject(
+                    "SELECT COUNT(*) FROM locations WHERE LOWER(name) = LOWER(?) AND location_id != ?",
+                    Integer.class, name, excludeId);
+        }
+        if (count != null && count > 0)
+            throw new IllegalArgumentException(
+                    "That location name already exists. Need to choose a unique location name.");
     }
 
     public void deleteLocation(int locationId) {

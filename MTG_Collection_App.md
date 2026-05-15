@@ -515,7 +515,7 @@ After the `INSERT … ON DUPLICATE KEY UPDATE` in `CollectionService.addCard()`,
 
 ---
 
-### TODO 4 — LocationService: Extract shared validation method
+### ~~TODO 4 — LocationService: Extract shared validation method~~ DONE
 
 `createLocation` and `renameLocation` both contain identical name-uniqueness check logic. Extract it into a private `validateUniqueName(String name, Integer excludeId)` method.
 
