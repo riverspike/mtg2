@@ -194,6 +194,9 @@ export default function CardDetailModal({ card, onClose, locations, onAdded, onU
             <dt>Power / Toughness</dt>
             <dd>{detail.power} / {detail.toughness}</dd>
           </>}
+
+          <dt>Set</dt>
+          <dd>{card.setName}</dd>
         </dl>
 
         {/* ── Search mode: Add to Collection ── */}

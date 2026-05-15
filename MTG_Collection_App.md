@@ -305,6 +305,7 @@ Triggered by clicking a card's Name in the table. Displays:
   * Flavor Text — DB cards.flavor\_text
   * Power (if not null) — DB cards.power
   * Toughness (if not null) — DB cards.toughness
+  * Set name from `sets.name`
 
 ---
 
