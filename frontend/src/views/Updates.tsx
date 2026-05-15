@@ -14,8 +14,8 @@ export default function Updates() {
     setSetListLoading(true)
     appendLog('Starting card set list update...')
     try {
-      const { added } = await updateCardSetList()
-      appendLog(added > 0 ? `Done. Added ${added} new set${added !== 1 ? 's' : ''}.` : 'Done. No changes.')
+      const { total, added } = await updateCardSetList()
+      appendLog(`Done. ${total} total set${total !== 1 ? 's' : ''}. ${added} new set${added !== 1 ? 's' : ''} added.`)
     } catch (err) {
       appendLog(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
     } finally {

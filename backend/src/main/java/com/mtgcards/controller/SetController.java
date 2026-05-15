@@ -26,6 +26,6 @@ public class SetController {
     @PostMapping("/sets/update")
     public Map<String, Integer> updateSets() {
         SetService.UpdateResult result = setService.updateSets();
-        return Map.of("added", result.added());
+        return Map.of("total", result.total(), "added", result.added());
     }
 }

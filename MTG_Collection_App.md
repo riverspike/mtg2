@@ -471,8 +471,7 @@ Every operation logs three message types in sequence:
 * Updates the `sets` table; inserts any sets not already present
 * Messages:
   * Start: `"Starting card set list update..."`
-  * Completion (no changes): `"Done. No changes."`
-  * Completion (changes): `"Done. Added " + n + " new set."` (singular) or `"new sets."` (plural)
+  * Completion: `"Done. " + total + " total set(s). " + added + " new set(s) added."` (singular/plural for each count)
 
 #### Update Values
 
@@ -486,7 +485,7 @@ Every operation logs three message types in sequence:
 ---------------------------
 ## Current issues
 
-### TODO 1 — PriceService: Batch price updates
+### ~~TODO 1 — PriceService: Batch price updates~~ DONE
 
 Replace the per-card `jdbc.update()` loop in `PriceService` with `jdbc.batchUpdate()` so all price rows are sent in a single round-trip instead of one per card.
 
@@ -496,7 +495,7 @@ Replace the per-card `jdbc.update()` loop in `PriceService` with `jdbc.batchUpda
 
 ---
 
-### TODO 2 — SetService: Track inserts by return value
+### ~~TODO 2 — SetService: Track inserts by return value~~ DONE
 
 Replace the COUNT-before / COUNT-after pattern in `SetService` with checking the return value of `jdbc.update()` (returns 1 on insert, 0 on `INSERT IGNORE` skip) to count new sets without extra queries.
 

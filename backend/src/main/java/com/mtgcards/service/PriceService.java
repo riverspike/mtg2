@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +25,8 @@ public class PriceService {
 
     private static final Logger log = LoggerFactory.getLogger(PriceService.class);
     private static final String BULK_META_URL = "https://api.scryfall.com/bulk-data/default_cards";
+
+    private static final int BATCH_SIZE = 500;
 
     private final JdbcTemplate  jdbc;
     private final RestTemplate  restTemplate;
@@ -60,6 +63,7 @@ public class PriceService {
         // ── Step 3: stream-parse the bulk JSON and upsert matching prices ─────
         int scanned = 0;
         int updated = 0;
+        List<Object[]> batch = new ArrayList<>();
         try (InputStream in  = URI.create(meta.downloadUri()).toURL().openStream();
              JsonParser parser = objectMapper.getFactory().createParser(in)) {
 
@@ -78,22 +82,22 @@ public class PriceService {
                     String usd     = textOrNull(card.path("prices").path("usd"));
                     String usdFoil = textOrNull(card.path("prices").path("usd_foil"));
 
-                    jdbc.update("""
-                            INSERT INTO card_prices (card_id, usd, usd_foil)
-                            VALUES (UUID_TO_BIN(?, 1), ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                                usd        = VALUES(usd),
-                                usd_foil   = VALUES(usd_foil),
-                                updated_at = CURRENT_TIMESTAMP
-                            """,
-                            id, parsePrice(usd), parsePrice(usdFoil));
+                    batch.add(new Object[]{ id, parsePrice(usd), parsePrice(usdFoil) });
                     updated++;
+
+                    if (batch.size() >= BATCH_SIZE) {
+                        flushBatch(batch);
+                    }
                 }
 
                 if (scanned % 10_000 == 0) {
                     log.info("Progress: scanned {} cards, matched {}/{} in collection",
                             scanned, updated, cardIds.size());
                 }
+            }
+
+            if (!batch.isEmpty()) {
+                flushBatch(batch);
             }
         } catch (Exception e) {
             log.error("Error processing bulk data after {} scanned, {} updated: {}",
@@ -103,6 +107,18 @@ public class PriceService {
         log.info("Price update complete — scanned {}, updated {}/{} collection cards",
                 scanned, updated, cardIds.size());
         return updated;
+    }
+
+    private void flushBatch(List<Object[]> batch) {
+        jdbc.batchUpdate("""
+                INSERT INTO card_prices (card_id, usd, usd_foil)
+                VALUES (UUID_TO_BIN(?, 1), ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    usd        = VALUES(usd),
+                    usd_foil   = VALUES(usd_foil),
+                    updated_at = CURRENT_TIMESTAMP
+                """, batch);
+        batch.clear();
     }
 
     private String textOrNull(JsonNode node) {

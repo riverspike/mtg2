@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 public class SetService {
 
-    public record UpdateResult(int added) {}
+    public record UpdateResult(int total, int added) {}
 
     private final JdbcTemplate jdbc;
     private final RestTemplate restTemplate;
@@ -27,7 +27,7 @@ public class SetService {
         ScryfallSetResponse response = restTemplate.getForObject(
                 "https://api.scryfall.com/sets", ScryfallSetResponse.class);
 
-        if (response == null || response.data() == null) return new UpdateResult(0);
+        if (response == null || response.data() == null) return new UpdateResult(0, 0);
 
         Integer before = jdbc.queryForObject("SELECT COUNT(*) FROM sets", Integer.class);
         int countBefore = before != null ? before : 0;
@@ -55,7 +55,7 @@ public class SetService {
         Integer after = jdbc.queryForObject("SELECT COUNT(*) FROM sets", Integer.class);
         int countAfter = after != null ? after : 0;
 
-        return new UpdateResult(countAfter - countBefore);
+        return new UpdateResult(countAfter, countAfter - countBefore);
     }
 
     public List<SetDto> getAllSets() {

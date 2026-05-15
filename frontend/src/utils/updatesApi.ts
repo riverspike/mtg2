@@ -1,4 +1,4 @@
-export async function updateCardSetList(): Promise<{ added: number }> {
+export async function updateCardSetList(): Promise<{ total: number; added: number }> {
   const res = await fetch('/api/sets/update', { method: 'POST' })
   if (!res.ok) {
     const text = await res.text().catch(() => '')

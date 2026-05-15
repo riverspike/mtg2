@@ -131,8 +131,8 @@ Returns all storage locations and decks for the location dropdown.
 **Response** — array of location objects:
 ```json
 [
-  { "locationId": 1, "locationKey": "storage_forgotten_realms", "name": "Forgotten Realms", "type": "storage" },
-  { "locationId": 2, "locationKey": "deck_slivers",             "name": "Slivers",           "type": "deck"    }
+  { "locationId": 1, "name": "Forgotten Realms", "type": "storage" },
+  { "locationId": 2, "name": "Slivers",           "type": "deck"    }
 ]
 ```
 
@@ -180,7 +180,7 @@ Adds a card to the collection. If the card does not yet exist in the `cards` tab
 ---
 
 ### `POST /api/prices/update`
-Downloads Scryfall's `default_cards` bulk data file (updated every 12 hours) and stream-parses it to update `usd` and `usd_foil` in the `card_prices` table for every card in the collection. Uses a single bulk download instead of per-card API calls to avoid rate limiting.
+Downloads Scryfall's `default_cards` bulk data file (updated every 12 hours) and stream-parses it to update `usd` and `usd_foil` in the `card_prices` table for every card in the collection. Uses a single bulk download instead of per-card API calls to avoid rate limiting. Matching cards are written in batches of 500 via `jdbc.batchUpdate()`.
 
 **Response:**
 ```json
@@ -210,9 +210,9 @@ Fetches the full list of card sets from Scryfall (`https://api.scryfall.com/sets
 
 **Response:**
 ```json
-{ "count": 742 }
+{ "total": 1038, "added": 3 }
 ```
-`count` is the number of sets returned by Scryfall (and upserted). Each set row is inserted on first call and updated on subsequent calls.
+`total` is the number of sets now in the database. `added` is the number that were newly inserted this run.
 
 ---
 
