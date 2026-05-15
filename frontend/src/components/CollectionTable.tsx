@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ManaText from './ManaText'
+import { cardPrice } from '../utils/cardUtils'
 import type { CollectionCard } from '../types/card'
 
 interface Column {
@@ -23,9 +24,6 @@ const COLUMNS: Column[] = [
 
 const PAGE_SIZES = [50, 100, 150, 200, 500]
 
-function cardPrice(card: CollectionCard): number {
-  return card.isFoil ? (card.usdFoil ?? 0) : (card.usd ?? 0)
-}
 
 interface Props {
   cards: CollectionCard[]

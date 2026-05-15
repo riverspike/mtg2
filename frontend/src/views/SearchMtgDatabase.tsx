@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../store/hooks'
 import { fetchCollection } from '../store/collectionSlice'
-import CardFilters from '../components/CardFilters'
+import CardFilters, { EMPTY_FILTERS } from '../components/CardFilters'
 import CollectionTable from '../components/CollectionTable'
 import CardDetailModal from '../components/CardDetailModal'
 import { searchScryfall } from '../utils/scryfallApi'
 import { fetchAllSets } from '../utils/setsApi'
 import type { SetOption } from '../utils/setsApi'
+import { getAllLocations } from '../utils/locationsApi'
 import type { CollectionCard, CardFiltersState, LocationOption } from '../types/card'
 
-const EMPTY_FILTERS: CardFiltersState = { name: '', colors: [], sets: [], locations: [] }
 
 export default function SearchMtgDatabase() {
   const dispatch = useAppDispatch()
@@ -22,10 +22,7 @@ export default function SearchMtgDatabase() {
   const [allSetsData,  setAllSetsData]  = useState<SetOption[]>([])
 
   useEffect(() => {
-    fetch('/api/locations')
-      .then(r => r.json() as Promise<LocationOption[]>)
-      .then(setLocations)
-      .catch(() => {})
+    getAllLocations().then(setLocations).catch(() => {})
   }, [])
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { renameLocation } from '../utils/locationsApi'
+import { getAllLocations, renameLocation } from '../utils/locationsApi'
 import type { LocationOption } from '../types/card'
 
 interface Props {
@@ -15,10 +15,7 @@ export default function RenameLocationModal({ onClose }: Props) {
   const [log,         setLog]         = useState('')
 
   useEffect(() => {
-    fetch('/api/locations')
-      .then(r => r.json() as Promise<LocationOption[]>)
-      .then(setLocations)
-      .catch(() => {})
+    getAllLocations().then(setLocations).catch(() => {})
   }, [])
 
   function appendLog(msg: string) {

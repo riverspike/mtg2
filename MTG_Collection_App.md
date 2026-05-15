@@ -575,7 +575,7 @@ Files to delete:
 
 ---
 
-### TODO F2 — Add `getAllLocations()` to locationsApi and remove inline fetches
+### ~~TODO F2 — Add `getAllLocations()` to locationsApi and remove inline fetches~~ DONE
 
 `locationsApi.ts` has helpers for create/rename/delete/getEmpty but no `getAllLocations()`. Three components call `fetch('/api/locations')` directly — `BrowseCollection.tsx`, `SearchMtgDatabase.tsx`, and `RenameLocationModal.tsx`. If the endpoint changes, three files need updates.
 
@@ -585,7 +585,7 @@ Files to delete:
 
 ---
 
-### TODO F3 — Consolidate `throwOnError` into a shared API utility
+### ~~TODO F3 — Consolidate `throwOnError` into a shared API utility~~ DONE
 
 `throwOnError` (parse 400 JSON body and throw) is copy-pasted identically in `collectionApi.ts` and `locationsApi.ts`. Should live in one shared utility file.
 
@@ -595,7 +595,7 @@ Files to delete:
 
 ---
 
-### TODO F4 — Extract shared `cardPrice()` helper
+### ~~TODO F4 — Extract shared `cardPrice()` helper~~ DONE
 
 The function `cardPrice(card)` — which returns `usdFoil` for foil cards and `usd` otherwise — is defined separately in `BrowseCollection.tsx` and `CollectionTable.tsx`. Pricing logic must be kept in sync manually.
 
@@ -605,7 +605,7 @@ The function `cardPrice(card)` — which returns `usdFoil` for foil cards and `u
 
 ---
 
-### TODO F5 — Import `EMPTY_FILTERS` in SearchMtgDatabase instead of redefining it
+### ~~TODO F5 — Import `EMPTY_FILTERS` in SearchMtgDatabase instead of redefining it~~ DONE
 
 `SearchMtgDatabase.tsx` redefines `EMPTY_FILTERS` locally instead of importing it from `CardFilters.tsx` where it is already exported. Adding or removing a filter field requires two edits.
 

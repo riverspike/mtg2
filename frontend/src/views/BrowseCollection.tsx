@@ -4,11 +4,9 @@ import { fetchCollection } from '../store/collectionSlice'
 import CardFilters, { EMPTY_FILTERS } from '../components/CardFilters'
 import CollectionTable from '../components/CollectionTable'
 import CardDetailModal from '../components/CardDetailModal'
+import { getAllLocations } from '../utils/locationsApi'
+import { cardPrice } from '../utils/cardUtils'
 import type { CollectionCard, CardFiltersState, LocationOption } from '../types/card'
-
-function cardPrice(card: CollectionCard): number {
-  return card.isFoil ? (card.usdFoil ?? 0) : (card.usd ?? 0)
-}
 
 export default function BrowseCollection() {
   const dispatch = useAppDispatch()
@@ -18,10 +16,7 @@ export default function BrowseCollection() {
   const [locations,    setLocations]    = useState<LocationOption[]>([])
 
   useEffect(() => {
-    fetch('/api/locations')
-      .then(r => r.json() as Promise<LocationOption[]>)
-      .then(setLocations)
-      .catch(() => {})
+    getAllLocations().then(setLocations).catch(() => {})
   }, [])
 
   const allSets = useMemo(

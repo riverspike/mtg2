@@ -1,3 +1,4 @@
+import { throwOnError } from './apiUtils'
 import type { CollectionCard } from '../types/card'
 
 export async function addCardToCollection(
@@ -43,16 +44,6 @@ export async function addCardToCollection(
     const text = await res.text().catch(() => '')
     throw new Error(text || `Failed to add card (${res.status})`)
   }
-}
-
-async function throwOnError(res: Response, fallback: string): Promise<void> {
-  if (res.ok) return
-  let message = fallback
-  try {
-    const json = await res.json()
-    if (json?.message) message = json.message
-  } catch {}
-  throw new Error(message)
 }
 
 export async function updateCollectionQuantity(collectionId: number, quantity: number): Promise<void> {

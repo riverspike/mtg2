@@ -1,14 +1,5 @@
+import { throwOnError } from './apiUtils'
 import type { LocationOption } from '../types/card'
-
-async function throwOnError(res: Response, fallback: string): Promise<void> {
-  if (res.ok) return
-  let message = fallback
-  try {
-    const json = await res.json()
-    if (json?.message) message = json.message
-  } catch {}
-  throw new Error(message)
-}
 
 export async function createLocation(name: string, type: string): Promise<void> {
   const res = await fetch('/api/locations', {
@@ -26,6 +17,12 @@ export async function renameLocation(locationId: number, name: string, type: str
     body: JSON.stringify({ name, type }),
   })
   await throwOnError(res, `Failed to rename location (${res.status})`)
+}
+
+export async function getAllLocations(): Promise<LocationOption[]> {
+  const res = await fetch('/api/locations')
+  if (!res.ok) throw new Error(`Failed to fetch locations (${res.status})`)
+  return res.json()
 }
 
 export async function getEmptyLocations(): Promise<LocationOption[]> {
