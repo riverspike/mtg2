@@ -1,7 +1,5 @@
 package com.mtgcards.repository;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mtgcards.dto.CardFaceDto;
 import com.mtgcards.dto.CollectionCardDto;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,21 +7,18 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class CollectionRepository {
 
-    private final JdbcTemplate  jdbc;
-    private final ObjectMapper  objectMapper;
+    private final JdbcTemplate jdbc;
 
-    private static final TypeReference<List<CardFaceDto>> FACE_LIST_TYPE =
-            new TypeReference<>() {};
-
-    public CollectionRepository(JdbcTemplate jdbc, ObjectMapper objectMapper) {
-        this.jdbc         = jdbc;
-        this.objectMapper = objectMapper;
+    public CollectionRepository(JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
     }
 
     private static final String FIND_ALL_SQL = """
@@ -50,26 +45,7 @@ public class CollectionRepository {
                 ci_back.uri                                           AS image_normal_back,
                 cp.usd,
                 cp.usd_foil,
-                DATE_FORMAT(cp.updated_at, '%Y-%m-%d')               AS price_updated_at,
-                (SELECT GROUP_CONCAT(l.name ORDER BY l.name SEPARATOR ',')
-                 FROM collection_locations cl
-                 JOIN locations l ON l.location_id = cl.location_id
-                 WHERE cl.collection_id = c.collection_id)            AS locations,
-                (SELECT GROUP_CONCAT(cc.color ORDER BY cc.color SEPARATOR ',')
-                 FROM card_colors cc
-                 WHERE cc.card_id = c.card_id AND cc.is_identity = FALSE) AS colors,
-                (SELECT JSON_ARRAYAGG(
-                    JSON_OBJECT(
-                        'face',       cf.face,
-                        'name',       cf.name,
-                        'manaCost',   cf.mana_cost,
-                        'typeLine',   cf.type_line,
-                        'oracleText', cf.oracle_text,
-                        'flavorText', cf.flavor_text,
-                        'power',      cf.power,
-                        'toughness',  cf.toughness
-                    )
-                 ) FROM card_faces cf WHERE cf.card_id = c.card_id)   AS faces_json
+                DATE_FORMAT(cp.updated_at, '%Y-%m-%d')               AS price_updated_at
             FROM collection c
             JOIN cards ca      ON ca.card_id  = c.card_id
             JOIN sets  s       ON s.set_id    = ca.set_id
@@ -81,21 +57,75 @@ public class CollectionRepository {
             ORDER BY ca.name, c.is_foil
             """;
 
-    private CollectionCardDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-        List<CardFaceDto> faces = null;
-        String facesJson = rs.getString("faces_json");
-        if (facesJson != null) {
-            try {
-                faces = objectMapper.readValue(facesJson, FACE_LIST_TYPE);
-                faces.sort(Comparator.comparingInt(CardFaceDto::face));
-            } catch (Exception e) {
-                // leave faces null — non-fatal
-            }
-        }
+    public List<CollectionCardDto> findAll() {
+        Map<Integer, String> locations = fetchLocations();
+        Map<String, String>  colors    = fetchColors();
+        Map<String, List<CardFaceDto>> faces = fetchFaces();
+
+        return jdbc.query(FIND_ALL_SQL,
+                (rs, rowNum) -> mapRow(rs, locations, colors, faces));
+    }
+
+    private Map<Integer, String> fetchLocations() {
+        Map<Integer, String> result = new HashMap<>();
+        jdbc.query("""
+                SELECT cl.collection_id,
+                       GROUP_CONCAT(l.name ORDER BY l.name SEPARATOR ',') AS locations
+                FROM collection_locations cl
+                JOIN locations l ON l.location_id = cl.location_id
+                GROUP BY cl.collection_id
+                """,
+                rs -> result.put(rs.getInt("collection_id"), rs.getString("locations")));
+        return result;
+    }
+
+    private Map<String, String> fetchColors() {
+        Map<String, String> result = new HashMap<>();
+        jdbc.query("""
+                SELECT BIN_TO_UUID(card_id, 1) AS card_id,
+                       GROUP_CONCAT(color ORDER BY color SEPARATOR ',') AS colors
+                FROM card_colors
+                WHERE is_identity = FALSE
+                GROUP BY card_id
+                """,
+                rs -> result.put(rs.getString("card_id"), rs.getString("colors")));
+        return result;
+    }
+
+    private Map<String, List<CardFaceDto>> fetchFaces() {
+        Map<String, List<CardFaceDto>> result = new HashMap<>();
+        jdbc.query("""
+                SELECT BIN_TO_UUID(card_id, 1) AS card_id,
+                       face, name, mana_cost, type_line, oracle_text, flavor_text, power, toughness
+                FROM card_faces
+                ORDER BY card_id, face
+                """,
+                rs -> {
+                    String cardId = rs.getString("card_id");
+                    result.computeIfAbsent(cardId, k -> new ArrayList<>()).add(new CardFaceDto(
+                            rs.getInt("face"),
+                            rs.getString("name"),
+                            rs.getString("mana_cost"),
+                            rs.getString("type_line"),
+                            rs.getString("oracle_text"),
+                            rs.getString("flavor_text"),
+                            rs.getString("power"),
+                            rs.getString("toughness")
+                    ));
+                });
+        return result;
+    }
+
+    private CollectionCardDto mapRow(ResultSet rs,
+                                     Map<Integer, String> locations,
+                                     Map<String, String> colors,
+                                     Map<String, List<CardFaceDto>> faces) throws SQLException {
+        int    collectionId = rs.getInt("collection_id");
+        String cardId       = rs.getString("card_id");
 
         return new CollectionCardDto(
-                rs.getInt("collection_id"),
-                rs.getString("card_id"),
+                collectionId,
+                cardId,
                 rs.getBoolean("is_foil"),
                 rs.getInt("quantity"),
                 rs.getTimestamp("updated_at") != null
@@ -114,17 +144,13 @@ public class CollectionRepository {
                 rs.getString("set_name"),
                 rs.getString("image_normal"),
                 rs.getString("image_normal_back"),
-                rs.getString("colors"),
+                colors.get(cardId),
                 rs.getString("collector_number"),
-                rs.getString("locations"),
+                locations.get(collectionId),
                 rs.getObject("usd",      Double.class),
                 rs.getObject("usd_foil", Double.class),
                 rs.getString("price_updated_at"),
-                faces
+                faces.get(cardId)
         );
-    }
-
-    public List<CollectionCardDto> findAll() {
-        return jdbc.query(FIND_ALL_SQL, this::mapRow);
     }
 }

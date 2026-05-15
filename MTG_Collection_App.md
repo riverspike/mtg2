@@ -525,7 +525,7 @@ After the `INSERT … ON DUPLICATE KEY UPDATE` in `CollectionService.addCard()`,
 
 ---
 
-### TODO 5 — PriceService: Inject ObjectMapper as Spring bean
+### ~~TODO 5 — PriceService: Inject ObjectMapper as Spring bean~~ DONE
 
 `PriceService` creates a `new ObjectMapper()` manually, bypassing any app-wide Jackson configuration. Inject the `ObjectMapper` bean via constructor instead.
 
@@ -535,7 +535,7 @@ After the `INSERT … ON DUPLICATE KEY UPDATE` in `CollectionService.addCard()`,
 
 ---
 
-### TODO 6 — CollectionRepository: Replace correlated subqueries with separate queries + merge
+### ~~TODO 6 — CollectionRepository: Replace correlated subqueries with separate queries + merge~~ DONE
 
 The `findAll()` query in `CollectionRepository` uses correlated subqueries (one per row) to aggregate location data. Replace with two flat queries — one for collection rows, one for location rows — and merge them in Java. Scales significantly better with large collections.
 

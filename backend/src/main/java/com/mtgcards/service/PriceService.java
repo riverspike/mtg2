@@ -30,10 +30,11 @@ public class PriceService {
 
     private final JdbcTemplate  jdbc;
     private final RestTemplate  restTemplate;
-    private final ObjectMapper  objectMapper = new ObjectMapper();
+    private final ObjectMapper  objectMapper;
 
-    public PriceService(JdbcTemplate jdbc, RestTemplateBuilder restTemplateBuilder) {
+    public PriceService(JdbcTemplate jdbc, RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
         this.jdbc         = jdbc;
+        this.objectMapper = objectMapper;
         this.restTemplate = restTemplateBuilder
                 .connectTimeout(Duration.ofSeconds(10))
                 .readTimeout(Duration.ofSeconds(30))
