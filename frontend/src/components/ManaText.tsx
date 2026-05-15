@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { MANA_SYMBOLS } from '../utils/manaSymbols'
 
 interface Props {
@@ -5,7 +6,7 @@ interface Props {
   size?: number
 }
 
-export default function ManaText({ text, size = 16 }: Props) {
+export default memo(function ManaText({ text, size = 16 }: Props) {
   if (!text) return null
 
   const parts = text.split(/(\{[^}]+\})/)
@@ -34,4 +35,4 @@ export default function ManaText({ text, size = 16 }: Props) {
       })}
     </span>
   )
-}
+})

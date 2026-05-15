@@ -1,14 +1,11 @@
 import { useState } from 'react'
 import { updateCardSetList, updateCardPrices } from '../utils/updatesApi'
+import { useLog } from '../hooks/useLog'
 
 export default function Updates() {
   const [setListLoading, setSetListLoading] = useState(false)
   const [pricesLoading,  setPricesLoading]  = useState(false)
-  const [log,            setLog]            = useState('')
-
-  function appendLog(msg: string) {
-    setLog(prev => prev ? prev + '\n' + msg : msg)
-  }
+  const [log, appendLog] = useLog()
 
   async function handleUpdateSetList() {
     setSetListLoading(true)

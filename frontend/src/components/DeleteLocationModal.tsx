@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import ModalShell from './ModalShell'
+import { useLog } from '../hooks/useLog'
 import { getEmptyLocations, deleteLocation } from '../utils/locationsApi'
 import type { LocationOption } from '../types/card'
 
@@ -11,21 +13,11 @@ export default function DeleteLocationModal({ onClose }: Props) {
   const [selectedId,     setSelectedId]     = useState('')
   const [confirmPending, setConfirmPending] = useState(false)
   const [busy,           setBusy]           = useState(false)
-  const [log,            setLog]            = useState('')
+  const [log, appendLog] = useLog()
 
   useEffect(() => {
-    fetchEmpty()
+    getEmptyLocations().then(setLocations).catch(() => {})
   }, [])
-
-  function fetchEmpty() {
-    getEmptyLocations()
-      .then(setLocations)
-      .catch(() => {})
-  }
-
-  function appendLog(msg: string) {
-    setLog(prev => prev ? prev + '\n' + msg : msg)
-  }
 
   function handleSelect(id: string) {
     setSelectedId(id)
@@ -54,72 +46,67 @@ export default function DeleteLocationModal({ onClose }: Props) {
   const hasEmpty     = locations.length > 0
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕</button>
-        <h2 className="modal-title">Delete Location</h2>
+    <ModalShell title="Delete Location" onClose={onClose}>
+      <p className="delete-location-info">
+        Only empty locations can be deleted. Move all the cards from one location
+        to another before trying to delete a location.
+      </p>
 
-        <p className="delete-location-info">
-          Only empty locations can be deleted. Move all the cards from one location
-          to another before trying to delete a location.
-        </p>
+      <div className="add-form">
+        {hasEmpty ? (
+          <>
+            <div className="add-field">
+              <label className="add-label">Choose Location to Delete</label>
+              <select
+                className="add-select"
+                value={selectedId}
+                onChange={e => handleSelect(e.target.value)}
+                disabled={busy}
+              >
+                <option value="">Select a location…</option>
+                {locations.map(l => (
+                  <option key={l.locationId} value={l.locationId}>{l.name}</option>
+                ))}
+              </select>
+            </div>
 
-        <div className="add-form">
-          {hasEmpty ? (
-            <>
-              <div className="add-field">
-                <label className="add-label">Choose Location to Delete</label>
-                <select
-                  className="add-select"
-                  value={selectedId}
-                  onChange={e => handleSelect(e.target.value)}
-                  disabled={busy}
-                >
-                  <option value="">Select a location…</option>
-                  {locations.map(l => (
-                    <option key={l.locationId} value={l.locationId}>{l.name}</option>
-                  ))}
-                </select>
-              </div>
+            {selectedId && !confirmPending && (
+              <button
+                className="add-btn delete-btn"
+                onClick={() => setConfirmPending(true)}
+                disabled={busy}
+              >
+                Delete Location
+              </button>
+            )}
 
-              {selectedId && !confirmPending && (
-                <button
-                  className="add-btn delete-btn"
-                  onClick={() => setConfirmPending(true)}
-                  disabled={busy}
-                >
-                  Delete Location
-                </button>
-              )}
-
-              {confirmPending && (
-                <div className="delete-confirm">
-                  <p className="delete-confirm-msg">
-                    Are you sure you want to delete &ldquo;{selectedName}&rdquo;?
-                  </p>
-                  <div className="delete-confirm-btns">
-                    <button className="add-btn delete-btn" onClick={handleConfirmYes} disabled={busy}>
-                      Yes
-                    </button>
-                    <button className="add-btn" onClick={() => setConfirmPending(false)} disabled={busy}>
-                      No
-                    </button>
-                  </div>
+            {confirmPending && (
+              <div className="delete-confirm">
+                <p className="delete-confirm-msg">
+                  Are you sure you want to delete &ldquo;{selectedName}&rdquo;?
+                </p>
+                <div className="delete-confirm-btns">
+                  <button className="add-btn delete-btn" onClick={handleConfirmYes} disabled={busy}>
+                    Yes
+                  </button>
+                  <button className="add-btn" onClick={() => setConfirmPending(false)} disabled={busy}>
+                    No
+                  </button>
                 </div>
-              )}
-            </>
-          ) : (
-            <p className="delete-location-none">No empty locations available to delete.</p>
-          )}
-        </div>
-
-        <textarea
-          className="update-log location-log"
-          readOnly
-          value={log}
-          placeholder="Messages will appear here..."
-        />
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="delete-location-none">No empty locations available to delete.</p>
+        )}
       </div>
-    </div>
+
+      <textarea
+        className="update-log location-log"
+        readOnly
+        value={log}
+        placeholder="Messages will appear here..."
+      />
+    </ModalShell>
   )
 }

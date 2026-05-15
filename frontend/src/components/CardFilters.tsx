@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import ManaText from './ManaText'
 import type { CardFiltersState } from '../types/card'
 
@@ -12,7 +13,7 @@ interface Props {
   allLocations?: string[]
 }
 
-export default function CardFilters({ filters, onFiltersChange, allSets, allLocations }: Props) {
+export default memo(function CardFilters({ filters, onFiltersChange, allSets, allLocations }: Props) {
   const toggleColor = (color: string) => {
     const next = filters.colors.includes(color)
       ? filters.colors.filter(c => c !== color)
@@ -93,4 +94,4 @@ export default function CardFilters({ filters, onFiltersChange, allSets, allLoca
       )}
     </div>
   )
-}
+})

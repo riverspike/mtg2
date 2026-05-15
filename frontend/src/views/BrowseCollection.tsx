@@ -43,10 +43,17 @@ export default function BrowseCollection() {
     return true
   }), [cards, filters])
 
-  const totalCount    = cards.reduce((s, c) => s + c.quantity, 0)
-  const totalValue    = cards.reduce((s, c) => s + c.quantity * cardPrice(c), 0)
-  const filteredCount = filteredCards.reduce((s, c) => s + c.quantity, 0)
-  const filteredValue = filteredCards.reduce((s, c) => s + c.quantity * cardPrice(c), 0)
+  const { totalCount, totalValue } = useMemo(() =>
+    cards.reduce(
+      (acc, c) => ({ totalCount: acc.totalCount + c.quantity, totalValue: acc.totalValue + c.quantity * cardPrice(c) }),
+      { totalCount: 0, totalValue: 0 }
+    ), [cards])
+
+  const { filteredCount, filteredValue } = useMemo(() =>
+    filteredCards.reduce(
+      (acc, c) => ({ filteredCount: acc.filteredCount + c.quantity, filteredValue: acc.filteredValue + c.quantity * cardPrice(c) }),
+      { filteredCount: 0, filteredValue: 0 }
+    ), [filteredCards])
 
   return (
     <>

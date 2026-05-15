@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import ManaText from './ManaText'
+import ModalShell from './ModalShell'
 import { addCardToCollection, updateCollectionQuantity, moveCollectionCard } from '../utils/collectionApi'
 import type { CollectionCard, LocationOption } from '../types/card'
 
@@ -117,10 +118,7 @@ export default function CardDetailModal({ card, onClose, locations, onAdded, onU
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕</button>
-        <h2 className="modal-title">{card.name}</h2>
+    <ModalShell title={card.name} onClose={onClose}>
 
         <div className="modal-images">
           {card.imageNormal ? (
@@ -357,7 +355,6 @@ export default function CardDetailModal({ card, onClose, locations, onAdded, onU
             )}
           </div>
         )}
-      </div>
-    </div>
+    </ModalShell>
   )
 }

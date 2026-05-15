@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import ManaText from './ManaText'
 import { cardPrice } from '../utils/cardUtils'
 import type { CollectionCard } from '../types/card'
@@ -30,7 +30,7 @@ interface Props {
   onCardClick: (card: CollectionCard) => void
 }
 
-export default function CollectionTable({ cards, onCardClick }: Props) {
+export default memo(function CollectionTable({ cards, onCardClick }: Props) {
   const [sortKey, setSortKey] = useState('name')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [pageSize, setPageSize] = useState(50)
@@ -123,4 +123,4 @@ export default function CollectionTable({ cards, onCardClick }: Props) {
       </div>
     </div>
   )
-}
+})

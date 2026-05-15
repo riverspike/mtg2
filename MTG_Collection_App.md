@@ -615,7 +615,7 @@ The function `cardPrice(card)` — which returns `usdFoil` for foil cards and `u
 
 ---
 
-### TODO F6 — Extract shared `ModalShell` wrapper component
+### ~~TODO F6 — Extract shared `ModalShell` wrapper component~~ DONE
 
 All four modals (`CardDetailModal`, `AddLocationModal`, `RenameLocationModal`, `DeleteLocationModal`) repeat the same outer structure: `modal-overlay` div, click-to-close, `modal` div, stop-propagation, close button, title. Extracting a `ModalShell` component would remove the duplication.
 
@@ -625,7 +625,7 @@ All four modals (`CardDetailModal`, `AddLocationModal`, `RenameLocationModal`, `
 
 ---
 
-### TODO F7 — Extract shared `appendLog` hook or utility
+### ~~TODO F7 — Extract shared `appendLog` hook or utility~~ DONE
 
 The `appendLog` pattern — `setLog(prev => prev ? prev + '\n' + msg : msg)` — is duplicated in `AddLocationModal`, `RenameLocationModal`, `DeleteLocationModal`, and `Updates`. Could be a `useLog()` custom hook returning `[log, appendLog]`.
 
@@ -635,7 +635,7 @@ The `appendLog` pattern — `setLog(prev => prev ? prev + '\n' + msg : msg)` —
 
 ---
 
-### TODO F8 — Memoize `CollectionTable`, `CardFilters`, and `ManaText` components
+### ~~TODO F8 — Memoize `CollectionTable`, `CardFilters`, and `ManaText` components~~ DONE
 
 None of these three components are wrapped in `React.memo`. `CollectionTable` renders 500+ rows and re-runs the full sort on every parent state change. `ManaText` re-parses the mana cost string on every render of every row. `CardFilters` receives stable props but re-renders on any parent update.
 
@@ -645,7 +645,7 @@ None of these three components are wrapped in `React.memo`. `CollectionTable` re
 
 ---
 
-### TODO F9 — Combine four stats `.reduce()` passes into one in BrowseCollection
+### ~~TODO F9 — Combine four stats `.reduce()` passes into one in BrowseCollection~~ DONE
 
 `BrowseCollection.tsx` calculates `totalCount`, `totalValue`, `filteredCount`, and `filteredValue` with four separate loops over the cards array. These can be computed in a single `reduce` pass.
 
