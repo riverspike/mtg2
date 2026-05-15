@@ -544,3 +544,112 @@ The `findAll()` query in `CollectionRepository` uses correlated subqueries (one 
 | :---- | :---- | :---- | :---- |
 | CollectionRepository | Replace correlated subqueries with two flat queries merged in Java | High | Scales better with large collections; eliminates N correlated lookups |
 
+---
+
+## Frontend TODOs
+
+### ~~TODO F1 — Delete leftover JSX/JS shim files~~ DONE
+
+Several `.jsx` / `.js` files were left over from the TypeScript migration. Most are shims that re-export the `.tsx` version; one (`CollectionFilters.jsx`) is a full duplicate of `CardFilters.tsx`. None are needed.
+
+Files to delete:
+
+| File | Notes |
+| :---- | :---- |
+| `src/App.jsx` | Shim — re-exports App.tsx |
+| `src/main.jsx` | Shim — re-exports main.tsx |
+| `src/components/CardDetailModal.jsx` | Shim |
+| `src/components/CardFilters.jsx` | Shim |
+| `src/components/CollectionTable.jsx` | Shim |
+| `src/components/CollectionFilters.jsx` | Dead code — full JSX duplicate of CardFilters.tsx, never imported |
+| `src/components/ManaText.jsx` | Shim |
+| `src/utils/manaSymbols.js` | Shim |
+| `src/store/collectionSlice.js` | Shim |
+| `src/store/index.js` | Shim |
+| `src/views/BrowseCollection.jsx` | Shim |
+| `src/views/SearchMtgDatabase.jsx` | Shim |
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| src/ (various) | Delete 12 leftover shim/dead JSX files | Low | Eliminates confusion about which file is authoritative |
+
+---
+
+### TODO F2 — Add `getAllLocations()` to locationsApi and remove inline fetches
+
+`locationsApi.ts` has helpers for create/rename/delete/getEmpty but no `getAllLocations()`. Three components call `fetch('/api/locations')` directly — `BrowseCollection.tsx`, `SearchMtgDatabase.tsx`, and `RenameLocationModal.tsx`. If the endpoint changes, three files need updates.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| `utils/locationsApi.ts` + 3 components | Add `getAllLocations()` helper; replace inline fetches | Low | Single source of truth for the locations endpoint |
+
+---
+
+### TODO F3 — Consolidate `throwOnError` into a shared API utility
+
+`throwOnError` (parse 400 JSON body and throw) is copy-pasted identically in `collectionApi.ts` and `locationsApi.ts`. Should live in one shared utility file.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| `utils/collectionApi.ts`, `utils/locationsApi.ts` | Extract shared `throwOnError` into `utils/apiUtils.ts` | Low | One place to change error-handling behavior |
+
+---
+
+### TODO F4 — Extract shared `cardPrice()` helper
+
+The function `cardPrice(card)` — which returns `usdFoil` for foil cards and `usd` otherwise — is defined separately in `BrowseCollection.tsx` and `CollectionTable.tsx`. Pricing logic must be kept in sync manually.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| `views/BrowseCollection.tsx`, `components/CollectionTable.tsx` | Extract into `utils/cardUtils.ts` or similar | Low | One place to update if pricing logic changes |
+
+---
+
+### TODO F5 — Import `EMPTY_FILTERS` in SearchMtgDatabase instead of redefining it
+
+`SearchMtgDatabase.tsx` redefines `EMPTY_FILTERS` locally instead of importing it from `CardFilters.tsx` where it is already exported. Adding or removing a filter field requires two edits.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| `views/SearchMtgDatabase.tsx` | Replace local definition with import from `CardFilters.tsx` | Low | Filter shape defined in one place |
+
+---
+
+### TODO F6 — Extract shared `ModalShell` wrapper component
+
+All four modals (`CardDetailModal`, `AddLocationModal`, `RenameLocationModal`, `DeleteLocationModal`) repeat the same outer structure: `modal-overlay` div, click-to-close, `modal` div, stop-propagation, close button, title. Extracting a `ModalShell` component would remove the duplication.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| All 4 modal components | Extract `ModalShell` with `onClose` and `title` props | Medium | Modal chrome changes in one place |
+
+---
+
+### TODO F7 — Extract shared `appendLog` hook or utility
+
+The `appendLog` pattern — `setLog(prev => prev ? prev + '\n' + msg : msg)` — is duplicated in `AddLocationModal`, `RenameLocationModal`, `DeleteLocationModal`, and `Updates`. Could be a `useLog()` custom hook returning `[log, appendLog]`.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| 3 modal components + `Updates.tsx` | Extract `useLog()` custom hook | Low | Log behavior (timestamps, max lines, etc.) changeable in one place |
+
+---
+
+### TODO F8 — Memoize `CollectionTable`, `CardFilters`, and `ManaText` components
+
+None of these three components are wrapped in `React.memo`. `CollectionTable` renders 500+ rows and re-runs the full sort on every parent state change. `ManaText` re-parses the mana cost string on every render of every row. `CardFilters` receives stable props but re-renders on any parent update.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| `CollectionTable.tsx`, `CardFilters.tsx`, `ManaText.tsx` | Wrap with `React.memo`; add `useCallback` for handlers passed as props | Medium | Eliminates redundant renders on large collections |
+
+---
+
+### TODO F9 — Combine four stats `.reduce()` passes into one in BrowseCollection
+
+`BrowseCollection.tsx` calculates `totalCount`, `totalValue`, `filteredCount`, and `filteredValue` with four separate loops over the cards array. These can be computed in a single `reduce` pass.
+
+| Where | What | Effort | Benefit |
+| :---- | :---- | :---- | :---- |
+| `views/BrowseCollection.tsx` | Merge 4 reduce calls into 1 | Low | Minor perf gain; cleaner code |
+
