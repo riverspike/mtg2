@@ -3,8 +3,13 @@ package com.mtgcards.service;
 import com.mtgcards.dto.AddCardRequest;
 import com.mtgcards.dto.CardFaceDto;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 
 @Service
 public class CollectionService {
@@ -108,21 +113,24 @@ public class CollectionService {
     }
 
     private int upsertCollection(AddCardRequest req) {
-        jdbc.update("""
-                INSERT INTO collection (card_id, is_foil, quantity)
-                VALUES (UUID_TO_BIN(?, 1), ?, ?)
-                ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)
-                """,
-                req.cardId(), req.isFoil(), req.quantity());
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbc.update(con -> {
+            PreparedStatement ps = con.prepareStatement("""
+                    INSERT INTO collection (card_id, is_foil, quantity)
+                    VALUES (UUID_TO_BIN(?, 1), ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        quantity      = quantity + VALUES(quantity),
+                        collection_id = LAST_INSERT_ID(collection_id)
+                    """, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, req.cardId());
+            ps.setBoolean(2, req.isFoil());
+            ps.setInt(3, req.quantity());
+            return ps;
+        }, keyHolder);
 
-        Integer id = jdbc.queryForObject("""
-                SELECT collection_id FROM collection
-                WHERE card_id = UUID_TO_BIN(?, 1) AND is_foil = ?
-                """,
-                Integer.class,
-                req.cardId(), req.isFoil());
-        if (id == null) throw new IllegalStateException("collection row not found after upsert");
-        return id;
+        Number key = keyHolder.getKey();
+        if (key == null) throw new IllegalStateException("collection row not found after upsert");
+        return key.intValue();
     }
 
     private void upsertCollectionLocation(int collectionId, int locationId, int quantity) {

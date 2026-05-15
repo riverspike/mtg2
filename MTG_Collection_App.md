@@ -505,7 +505,7 @@ Replace the COUNT-before / COUNT-after pattern in `SetService` with checking the
 
 ---
 
-### TODO 3 — CollectionService: Eliminate SELECT after upsert
+### ~~TODO 3 — CollectionService: Eliminate SELECT after upsert~~ DONE
 
 After the `INSERT … ON DUPLICATE KEY UPDATE` in `CollectionService.addCard()`, remove the follow-up `SELECT collection_id` and instead use `LAST_INSERT_ID()` (returned by the JDBC update) to get the new row's ID without an extra round-trip.
 
